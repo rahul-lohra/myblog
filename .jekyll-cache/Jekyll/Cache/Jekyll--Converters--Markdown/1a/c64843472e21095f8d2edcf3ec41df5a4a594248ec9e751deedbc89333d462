@@ -1,0 +1,73 @@
+I"�<p>Let’s say we have a <code class="language-plaintext highlighter-rouge">Button</code> class and it has a <code class="language-plaintext highlighter-rouge">count</code> property(member-variable), and a method <code class="language-plaintext highlighter-rouge">tap()</code>. Whenever we call the <code class="language-plaintext highlighter-rouge">tap()</code> function, we <strong>increment</strong> the count and <strong><em>send a callback back to caller function.</em></strong></p>
+
+<h2 id="typical-callback-code-from-java">Typical callback code From Java</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public class Button {
+ 
+ int _count = 0;
+ ButtonCallback callback;
+ void tap(){
+     ++_count;
+     if(callback!=null &amp;&amp; (_count%2) == 0){
+         callback.onTrigger(_count);
+      }
+  }
+ void setCallback(ButtonCallback callback){
+     this.callback = callback;
+ }
+ public interface ButtonCallback {
+    void onTrigger(int a);
+ }
+}
+</code></pre></div></div>
+<p>Unfortunately <strong>Dart</strong> doesn’t have <strong><code class="language-plaintext highlighter-rouge">interface</code></strong> like <strong>Java</strong>. But it supports functional programming: So <strong>we can just pass <code class="language-plaintext highlighter-rouge">function</code> as <code class="language-plaintext highlighter-rouge">arguments</code>. <em>This is what we need to do for creating callbacks</em></strong></p>
+
+<h2 id="here-is-the-dart-code">Here is the Dart Code</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public class Button {
+  int _count = 0;
+  Function(int) callback;
+  
+  void tap(){
+     ++_count;
+     if(callback!=null &amp;&amp; (_count%2) == 0){
+         callback(_count));
+      }
+    }
+  void setCallback(Function(int) f){
+    this.callback = f;
+  }
+}
+
+//Main starts
+main (List&lt;String&gt; args){ 
+  Button button = new Button();
+  button.setCallback((a){
+    print(a);
+});
+for(int i=0;i&lt;4;++i){
+  button.tap();
+ }
+}
+//Main Ends
+</code></pre></div></div>
+
+<p align="center">
+  <img src="https://cdn-images-1.medium.com/max/2000/1*tBxZBTka2VuLeRQ4OfrA6w.png" />
+  <br />
+  Output in console
+</p>
+
+<blockquote>
+  <p><strong>Code</strong>: <a href="https://gist.github.com/rahul-lohra/6f3561221564a346d060d58aabe8b659">https://gist.github.com/rahul-lohra/6f3561221564a346d060d58aabe8b659</a></p>
+</blockquote>
+
+<h2 id="a-typedef-function-looks-like-this">A typedef function looks like this</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  Function(int) callback
+</code></pre></div></div>
+
+<p>Official definition of typedef: <a href="https://dart.dev/guides/language/language-tour#typedefs">https://dart.dev/guides/language/language-tour#typedefs</a></p>
+
+<p>It says they are like objects and you can assign it to a variable or pass it as function arguments.</p>
+
+<p>That’s it</p>
+:ET

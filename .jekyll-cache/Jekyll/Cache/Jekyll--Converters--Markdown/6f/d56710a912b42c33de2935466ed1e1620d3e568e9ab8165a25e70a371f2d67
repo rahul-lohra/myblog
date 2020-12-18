@@ -1,0 +1,2 @@
+I"è<p>Letâ€™s say we have a <code class="language-plaintext highlighter-rouge">Button</code> class and it has a <code class="language-plaintext highlighter-rouge">count</code> property(member-variable), and a method <code class="language-plaintext highlighter-rouge">tap()</code>. Whenever we call the <code class="language-plaintext highlighter-rouge">tap()</code> function, we <strong>increment</strong> the count and <strong><em>send a callback back to caller function.</em></strong></p>
+:ET

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Bluetooth Low energy Chat Application Series #1 | Rahul Kumar Lohra</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Bluetooth Low energy Chat Application Series #1" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Bluetooth Low energy Chat Application Series" />
+<meta property="og:description" content="Bluetooth Low energy Chat Application Series" />
+<link rel="canonical" href="/ble/chat/application/2018/12/27/ble-part-1.html" />
+<meta property="og:url" content="/ble/chat/application/2018/12/27/ble-part-1.html" />
+<meta property="og:site_name" content="Rahul Kumar Lohra" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-12-27T01:13:01+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Bluetooth Low energy Chat Application Series #1" />
+<script type="application/ld+json">
+{"headline":"Bluetooth Low energy Chat Application Series #1","dateModified":"2018-12-27T01:13:01+05:30","datePublished":"2018-12-27T01:13:01+05:30","description":"Bluetooth Low energy Chat Application Series","url":"/ble/chat/application/2018/12/27/ble-part-1.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/ble/chat/application/2018/12/27/ble-part-1.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Rahul Kumar Lohra" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Rahul Kumar Lohra</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Bluetooth Low energy Chat Application Series #1</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-12-27T01:13:01+05:30" itemprop="datePublished">Dec 27, 2018
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h1 id="bluetooth-low-energy-chat-application-series">Bluetooth Low energy Chat Application Series</h1>
+
+<h3 id="overview-of-chat-application--">Overview of Chat application -</h3>
+
+<ol>
+  <li>How Bluetooth Low energy device works</li>
+  <li>Setting up Gatt Server <a href="/ble/chat/application/2018/12/27/ble-part-2.html">#Post 2</a></li>
+  <li>Setting up Gatt Client <a href="/ble/chat/application/2018/12/27/ble-part-3.html">#Post 3</a></li>
+  <li>Sending Data over Bluetooth Low energy network</li>
+</ol>
+
+<h4 id="post-1---how-bluetooth-low-energy-device-works-in-general">Post 1 - How Bluetooth Low energy device works in general</h4>
+
+<p>Key components</p>
+
+<p><strong>Ble</strong> - Bluetooth Low energy device</p>
+
+<p><strong>GATT</strong> - Defines protocol(set of rules) on how data should be exchanged</p>
+
+<p><strong>GATT Server</strong> - Provides functionality to create <strong>Services</strong> and broadcast itself so other <strong>Gatt Client</strong> can connect to it. (can be slightly confusing, I know but don’t worry, this will be cleared later). Treat it as a web server.</p>
+
+<p><strong>Gatt Client</strong> - It is responsible for scanning nearby <strong>GATT Server</strong>, connecting to it and exchanging data(in terms of <strong>Characteristics</strong>).</p>
+
+<p><strong>Service</strong> - A service is a collection of characteristics. For example, you could have a service called “Heart Rate Monitor” that includes characteristics such as “heart rate measurement.”</p>
+
+<p><strong>Characteristics</strong> - It contains a value and a list of <strong>descriptors</strong></p>
+
+<p><strong>Descriptors</strong> - It contains a value and generally it is used as attributes of a <strong>Characteristics</strong></p>
+
+<p><strong>UUID</strong> - Just a unique identifier, on how to uniquely identify/create a Service or a characteristics or a descriptor.</p>
+
+<p>For exchanging data over http network, we need two devices one will act as a server and another will act as client. Eg - that’s how website work</p>
+
+<p>This same thing applies in Ble network, we need two devices one will act as a <strong>Gatt server</strong> and another will act as <strong>Gatt client</strong> for exchanging of data.</p>
+
+<p>And a device can be both Gatt Server and Gatt client.</p>
+
+<p>There are still some concepts left, I will teach them when they are used.</p>
+
+<p>For Android chat application, we will have two devices and they both will act as a Gatt Server and Gatt Client.</p>
+
+<p>Reference - https://developer.android.com/guide/topics/connectivity/bluetooth-le</p>
+
+  </div><a class="u-url" href="/ble/chat/application/2018/12/27/ble-part-1.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Rahul Kumar Lohra</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Rahul Kumar Lohra</li><li><a class="u-email" href="mailto:tgunix@gmail.com">tgunix@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/rahul-lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">rahul-lohra</span></a></li><li><a href="https://www.twitter.com/rahul_lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">rahul_lohra</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Android|Kotlin|Java|Flutter|Dart|Software Development</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Shadow Constraint Layout with Round Corners | Rahul Kumar Lohra</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Shadow Constraint Layout with Round Corners" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="ConstraintLayout with its own shadow and we will apply round corners around it just like CardView" />
+<meta property="og:description" content="ConstraintLayout with its own shadow and we will apply round corners around it just like CardView" />
+<link rel="canonical" href="/android/2019/11/02/shadow-constraint-layout-with-round-corners.html" />
+<meta property="og:url" content="/android/2019/11/02/shadow-constraint-layout-with-round-corners.html" />
+<meta property="og:site_name" content="Rahul Kumar Lohra" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-11-02T01:13:01+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Shadow Constraint Layout with Round Corners" />
+<script type="application/ld+json">
+{"headline":"Shadow Constraint Layout with Round Corners","dateModified":"2019-11-02T01:13:01+05:30","datePublished":"2019-11-02T01:13:01+05:30","description":"ConstraintLayout with its own shadow and we will apply round corners around it just like CardView","url":"/android/2019/11/02/shadow-constraint-layout-with-round-corners.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/android/2019/11/02/shadow-constraint-layout-with-round-corners.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Rahul Kumar Lohra" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Rahul Kumar Lohra</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Shadow Constraint Layout with Round Corners</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-11-02T01:13:01+05:30" itemprop="datePublished">Nov 2, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><code class="language-plaintext highlighter-rouge">ConstraintLayout</code> with its own shadow and we will apply round corners around it just like <code class="language-plaintext highlighter-rouge">CardView</code></p>
+
+<p>Few Good things:</p>
+<ol>
+  <li>No need to put <code class="language-plaintext highlighter-rouge">ConstraintLayout</code> inside <code class="language-plaintext highlighter-rouge">CardView</code> anymore</li>
+  <li>You can draw custom shadows as well</li>
+  <li>Use same technique with any view</li>
+</ol>
+
+<p><strong>Prequisites</strong> (Good if you know these things otherwise don’t worry):</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Canvas</code> x,y corrdinate</li>
+  <li><code class="language-plaintext highlighter-rouge">PorterDuffXfermode</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Paint</code> class</li>
+  <li><code class="language-plaintext highlighter-rouge">Path</code> class</li>
+</ol>
+
+<p><strong>Things we need to do</strong></p>
+<ol>
+  <li>Draw shadow</li>
+  <li>Draw a border around the view</li>
+  <li>Clip the view with RoundRorners</li>
+  <li>Fill your view with white color: so you can see the border &amp; shadow &amp; you must draw this <strong>over your shadow paint</strong></li>
+</ol>
+
+<h2 id="draw-shadow-around-your-view">Draw shadow around your view</h2>
+
+<p>Classes required</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Paint</code> : to paint with shadow color</li>
+  <li><code class="language-plaintext highlighter-rouge">Path</code> : To give a path to shadow and that is around the view like a RECTANGLE</li>
+</ol>
+
+<script src="https://gist.github.com/rahullohra2903/9bdebadd1a56ceedc8249a5378f4db07.js" charset="utf-8"></script>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val porterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+val blurMaskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
+
+shadowPaint.xfermode = porterDuffXfermode
+shadowPaint.maskFilter = blurMaskFilter
+</code></pre></div></div>
+
+<p>The shadow is blurry that’s why we have used blurMaskFilter. And blurMaskFilter will only blur your color
+The shadow should not overlap the content of your constraint layout that’s why we used PorterDuffXfermode</p>
+
+<p>Now we setting up paint is completed. We have to give it a path and that’s a rectangle</p>
+
+<p>So the we are going to write something like this.</p>
+<ol>
+  <li>Goto to start point</li>
+  <li>Make a rectangle from there and at last come back from where you started</li>
+</ol>
+
+<blockquote>
+  <ol>
+    <li>shadowPath.goToStartPosition()</li>
+    <li>shadowPath.move_to_top_left_from_top_right</li>
+    <li>shadowPath.move_to_bottom_left_from_top_left</li>
+    <li>shadowPath.move_to_bottom_right_from_bottom_left</li>
+    <li>shadowPath.move_to_top_right_from_bottom_right</li>
+  </ol>
+</blockquote>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"-&gt;" denotes : From
+
+shadowPath.moveTo(width, 0f)                    //Top Right
+shadowPath.lineTo(0, 0)                         // TR -&gt; TL
+shadowPath.lineTo(0,height)                     // TL -&gt; BL 
+shadowPath.lineTo(width,height)                 // BL -&gt; BR
+shadowPath.lineTo(width, shadowStartY)          // BR -&gt; TR            
+</code></pre></div></div>
+
+<p>Cool the paint and path are set. We just need to pass commands to draw it on canvas</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.drawPath(shadowPath, shadowPaint)
+</code></pre></div></div>
+<p>That’s it.. This is what you will see</p>
+
+<p align="center">
+  <img src="https://cdn-images-1.medium.com/max/2000/1*IjOlpc-QYdzQgSwwGghiSg.png" />
+  <br />
+  Rectangular shadow
+</p>
+
+<p>The toughest part is done, now only comes the easy part</p>
+
+<h2 id="draw-a-border-around-the-view">Draw a border around the view</h2>
+
+<script src="https://gist.github.com/rahullohra2903/2f280df11927891caa9491a5d60bcc3d.js" charset="utf-8"></script>
+
+<p>We are using <strong><em><code class="language-plaintext highlighter-rouge">canvas.drawRoundRect(rect,paint)</code> to draw. It requires a <code class="language-plaintext highlighter-rouge">Rect</code> and <code class="language-plaintext highlighter-rouge">paint</code> and we have provided both</em></strong></p>
+
+<h2 id="clip-the-view-with-roundrorners">Clip the view with RoundRorners</h2>
+
+<script src="https://gist.github.com/rahullohra2903/248133957438cf7a069464cca2cb7f79.js" charset="utf-8"></script>
+
+<p>At the end we doing</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.clipPath(clipPath)
+</code></pre></div></div>
+<p>This means we want to clip this part(defined via clipPath) of canvas. And out future drawing commands must happen within the bounds of this <em>clipPath</em></p>
+
+<p>In real app we will do something like this</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyLayout:View {
+  fun override fun dispatchDraw(canvas: Canvas) {
+    clipRoundCorners(canvas)
+    super.dispatchDraw(canvas)
+}
+</code></pre></div></div>
+
+<p>Our job is to draw round corners around our view and also ensure your child views should not be drawn on that area. So we should write this function inside dispatchDraw. We can change the canvas before a child is drawn : <a href="https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)">https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)</a></p>
+
+<h2 id="fill-your-view-with-white-color">Fill your view with white color</h2>
+
+<script src="https://gist.github.com/rahullohra2903/77a196b4bd12fe94e03d4355f73023ce.js" charset="utf-8"></script>
+
+<p>Code should look pretty straight forward.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.drawRoundRect(rectBackgroundRectF, cornerRadius, cornerRadius, rectPaint)
+</code></pre></div></div>
+<p>The <code class="language-plaintext highlighter-rouge">paint</code> object has <code class="language-plaintext highlighter-rouge">rectPaint.xfermode = porterDuffXfermode</code>, to ensure the paint should come on top of shadow</p>
+
+<p>Final code should be like this</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyLayout:View {
+    override fun dispatchDraw(canvas: Canvas) {
+       clipRoundCorners(canvas)
+       super.dispatchDraw(canvas)
+    }
+    override fun onDraw(canvas: Canvas){
+       drawShadow(canvas)
+       drawBorder(canvas)
+       drawRectBackground(canvas)
+       super.onDraw(canvas)
+    }
+}
+</code></pre></div></div>
+
+<p>Full source code:</p>
+
+<script src="https://gist.github.com/rahullohra2903/5b5cbdb41cbc2fc94fc486fb9383554c.js" charset="utf-8"></script>
+
+<p align="center">Full code snipet and how to use</p>
+
+<p>1 very importatnt thing you have to do this in your parent view</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>android:clipChildren="false"
+android:clipToPadding="false"
+</code></pre></div></div>
+
+<p>From these two commands we are telling the Android that parent view must not clip the views of ShadowConstraintLayot if the views are getting drawn outside of its bouds.</p>
+
+<p>This is the final result..</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*iGOKfGtpeKS9I67PiCi5lQ.png" alt="Left one is Card View &amp; Right one is ShadowConstraintLayout" /></p>
+
+<p>Left one is Card View &amp; Right one is ShadowConstraintLayout</p>
+
+<p>You can play with <code class="language-plaintext highlighter-rouge">blurRadius</code> property and also set shadow <code class="language-plaintext highlighter-rouge">top</code>,<code class="language-plaintext highlighter-rouge">bottom</code>,<code class="language-plaintext highlighter-rouge">start</code>,<code class="language-plaintext highlighter-rouge">end</code> <code class="language-plaintext highlighter-rouge">offset</code> to suit your needs.</p>
+
+  </div><a class="u-url" href="/android/2019/11/02/shadow-constraint-layout-with-round-corners.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Rahul Kumar Lohra</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Rahul Kumar Lohra</li><li><a class="u-email" href="mailto:tgunix@gmail.com">tgunix@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/rahul-lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">rahul-lohra</span></a></li><li><a href="https://www.twitter.com/rahul_lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">rahul_lohra</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Android|Kotlin|Java|Flutter|Dart|Software Development</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

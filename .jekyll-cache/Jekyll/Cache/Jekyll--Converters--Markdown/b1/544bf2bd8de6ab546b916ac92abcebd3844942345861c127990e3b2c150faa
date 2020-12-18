@@ -1,0 +1,159 @@
+I"[ <p><code class="language-plaintext highlighter-rouge">ConstraintLayout</code> with its own shadow and we will apply round corners around it just like <code class="language-plaintext highlighter-rouge">CardView</code></p>
+
+<p>Few Good things:</p>
+<ol>
+  <li>No need to put <code class="language-plaintext highlighter-rouge">ConstraintLayout</code> inside <code class="language-plaintext highlighter-rouge">CardView</code> anymore</li>
+  <li>You can draw custom shadows as well</li>
+  <li>Use same technique with any view</li>
+</ol>
+
+<p><strong>Prequisites</strong> (Good if you know these things otherwise don’t worry):</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Canvas</code> x,y corrdinate</li>
+  <li><code class="language-plaintext highlighter-rouge">PorterDuffXfermode</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Paint</code> class</li>
+  <li><code class="language-plaintext highlighter-rouge">Path</code> class</li>
+</ol>
+
+<p><strong>Things we need to do</strong></p>
+<ol>
+  <li>Draw shadow</li>
+  <li>Draw a border around the view</li>
+  <li>Clip the view with RoundRorners</li>
+  <li>Fill your view with white color: so you can see the border &amp; shadow &amp; you must draw this <strong>over your shadow paint</strong></li>
+</ol>
+
+<h2 id="draw-shadow-around-your-view">Draw shadow around your view</h2>
+
+<p>Classes required</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Paint</code> : to paint with shadow color</li>
+  <li><code class="language-plaintext highlighter-rouge">Path</code> : To give a path to shadow and that is around the view like a RECTANGLE</li>
+</ol>
+
+<script src="https://gist.github.com/rahullohra2903/9bdebadd1a56ceedc8249a5378f4db07.js" charset="utf-8"></script>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val porterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+val blurMaskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
+
+shadowPaint.xfermode = porterDuffXfermode
+shadowPaint.maskFilter = blurMaskFilter
+</code></pre></div></div>
+
+<p>The shadow is blurry that’s why we have used blurMaskFilter. And blurMaskFilter will only blur your color
+The shadow should not overlap the content of your constraint layout that’s why we used PorterDuffXfermode</p>
+
+<p>Now we setting up paint is completed. We have to give it a path and that’s a rectangle</p>
+
+<p>So the we are going to write something like this.</p>
+<ol>
+  <li>Goto to start point</li>
+  <li>Make a rectangle from there and at last come back from where you started</li>
+</ol>
+
+<blockquote>
+  <ol>
+    <li>shadowPath.goToStartPosition()</li>
+    <li>shadowPath.move_to_top_left_from_top_right</li>
+    <li>shadowPath.move_to_bottom_left_from_top_left</li>
+    <li>shadowPath.move_to_bottom_right_from_bottom_left</li>
+    <li>shadowPath.move_to_top_right_from_bottom_right</li>
+  </ol>
+</blockquote>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"-&gt;" denotes : From
+
+shadowPath.moveTo(width, 0f)                    //Top Right
+shadowPath.lineTo(0, 0)                         // TR -&gt; TL
+shadowPath.lineTo(0,height)                     // TL -&gt; BL 
+shadowPath.lineTo(width,height)                 // BL -&gt; BR
+shadowPath.lineTo(width, shadowStartY)          // BR -&gt; TR            
+</code></pre></div></div>
+
+<p>Cool the paint and path are set. We just need to pass commands to draw it on canvas</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.drawPath(shadowPath, shadowPaint)
+</code></pre></div></div>
+<p>That’s it.. This is what you will see</p>
+
+<p align="center">
+  <img src="https://cdn-images-1.medium.com/max/2000/1*IjOlpc-QYdzQgSwwGghiSg.png" />
+  <br />
+  Rectangular shadow
+</p>
+
+<p>The toughest part is done, now only comes the easy part</p>
+
+<h2 id="draw-a-border-around-the-view">Draw a border around the view</h2>
+
+<script src="https://gist.github.com/rahullohra2903/2f280df11927891caa9491a5d60bcc3d.js" charset="utf-8"></script>
+
+<p>We are using <strong><em><code class="language-plaintext highlighter-rouge">canvas.drawRoundRect(rect,paint)</code> to draw. It requires a <code class="language-plaintext highlighter-rouge">Rect</code> and <code class="language-plaintext highlighter-rouge">paint</code> and we have provided both</em></strong></p>
+
+<h2 id="clip-the-view-with-roundrorners">Clip the view with RoundRorners</h2>
+
+<script src="https://gist.github.com/rahullohra2903/248133957438cf7a069464cca2cb7f79.js" charset="utf-8"></script>
+
+<p>At the end we doing</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.clipPath(clipPath)
+</code></pre></div></div>
+<p>This means we want to clip this part(defined via clipPath) of canvas. And out future drawing commands must happen within the bounds of this <em>clipPath</em></p>
+
+<p>In real app we will do something like this</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyLayout:View {
+  fun override fun dispatchDraw(canvas: Canvas) {
+    clipRoundCorners(canvas)
+    super.dispatchDraw(canvas)
+}
+</code></pre></div></div>
+
+<p>Our job is to draw round corners around our view and also ensure your child views should not be drawn on that area. So we should write this function inside dispatchDraw. We can change the canvas before a child is drawn : <a href="https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)">https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)</a></p>
+
+<h2 id="fill-your-view-with-white-color">Fill your view with white color</h2>
+
+<script src="https://gist.github.com/rahullohra2903/77a196b4bd12fe94e03d4355f73023ce.js" charset="utf-8"></script>
+
+<p>Code should look pretty straight forward.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>canvas.drawRoundRect(rectBackgroundRectF, cornerRadius, cornerRadius, rectPaint)
+</code></pre></div></div>
+<p>The <code class="language-plaintext highlighter-rouge">paint</code> object has <code class="language-plaintext highlighter-rouge">rectPaint.xfermode = porterDuffXfermode</code>, to ensure the paint should come on top of shadow</p>
+
+<p>Final code should be like this</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyLayout:View {
+    override fun dispatchDraw(canvas: Canvas) {
+       clipRoundCorners(canvas)
+       super.dispatchDraw(canvas)
+    }
+    override fun onDraw(canvas: Canvas){
+       drawShadow(canvas)
+       drawBorder(canvas)
+       drawRectBackground(canvas)
+       super.onDraw(canvas)
+    }
+}
+</code></pre></div></div>
+
+<p>Full source code:</p>
+
+<script src="https://gist.github.com/rahullohra2903/5b5cbdb41cbc2fc94fc486fb9383554c.js" charset="utf-8"></script>
+
+<p align="center">Full code snipet and how to use</p>
+
+<p>1 very importatnt thing you have to do this in your parent view</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>android:clipChildren="false"
+android:clipToPadding="false"
+</code></pre></div></div>
+
+<p>From these two commands we are telling the Android that parent view must not clip the views of ShadowConstraintLayot if the views are getting drawn outside of its bouds.</p>
+
+<p>This is the final result..</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*iGOKfGtpeKS9I67PiCi5lQ.png" alt="Left one is Card View &amp; Right one is ShadowConstraintLayout" /></p>
+
+<p>Left one is Card View &amp; Right one is ShadowConstraintLayout</p>
+
+<p>You can play with <code class="language-plaintext highlighter-rouge">blurRadius</code> property and also set shadow <code class="language-plaintext highlighter-rouge">top</code>,<code class="language-plaintext highlighter-rouge">bottom</code>,<code class="language-plaintext highlighter-rouge">start</code>,<code class="language-plaintext highlighter-rouge">end</code> <code class="language-plaintext highlighter-rouge">offset</code> to suit your needs.</p>
+:ET

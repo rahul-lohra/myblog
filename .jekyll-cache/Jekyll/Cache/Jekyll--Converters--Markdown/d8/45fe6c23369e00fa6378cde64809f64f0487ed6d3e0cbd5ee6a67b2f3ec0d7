@@ -1,0 +1,139 @@
+I"<h1 id="bluetooth-low-energy-chat-application-series">Bluetooth Low energy Chat Application Series</h1>
+
+<h3 id="overview-of-chat-application">Overview of Chat application:</h3>
+
+<ol>
+  <li>How Bluetooth Low energy device works <a href="/ble/chat/application/2018/12/27/ble-part-1.html">#Post 1</a></li>
+  <li>Setting up Gatt Server</li>
+  <li>Setting up Gatt Client <a href="/ble/chat/application/2018/12/27/ble-part-3.html">#Post 3</a></li>
+  <li>Sending Data over Bluetooth Low energy network</li>
+</ol>
+
+<h4 id="post-2---setting-up-gatt-server">Post 2 - Setting up Gatt Server</h4>
+
+<ol>
+  <li>Add permissions</li>
+  <li>Setup UUIDs for your service, Characteristics and meta-data</li>
+  <li>Setup Gatt Server</li>
+</ol>
+
+<h3 id="add-permissions">Add permissions</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;uses-permission android:name="android.permission.BLUETOOTH"/&gt;
+&lt;uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/&gt;
+&lt;uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/&gt;
+</code></pre></div></div>
+
+<h3 id="setup-uuids">Setup UUIDs</h3>
+<p>Use this url to generate UUID - (https://www.uuidgenerator.net/)</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val SERVICE_ID = "364710c0-6359-4bdf-9946-9f54d07eb8d3"
+val USER_META_DATA_ID = "770bf5dc-53f8-4d55-8506-15a51baee22d"
+val SERVICE_UUID = UUID.fromString(SERVICE_ID)
+val USER_META_DATA_UUID = UUID.fromString(USER_META_DATA_ID)
+</code></pre></div></div>
+
+<h3 id="setup-gatt-server">Setup Gatt Server</h3>
+<ol>
+  <li>Get BluetoothManager - <code class="language-plaintext highlighter-rouge">Goto step 2 after some delay eg - 2 seconds</code></li>
+  <li>Setup BluetoothLeAdvertiser</li>
+  <li>Create GattServerCallback - <code class="language-plaintext highlighter-rouge">in this callback you will receive message</code></li>
+  <li>Open GattServer</li>
+  <li>Add your service to the GATT server</li>
+  <li>Create AdvertiseCallback - <code class="language-plaintext highlighter-rouge">to know whether scan is started or not</code></li>
+  <li>Start advertising your GATT server</li>
+</ol>
+
+<p>Note - All above points are necessary</p>
+
+<h4 id="1-get-bluetoothmanager">1. Get BluetoothManager</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+# Goto to step 2 after some delay eg - 2 seconds
+# Eg - Use a handler 
+Handler.postDelayed({callStep2()}, 2000L)
+</code></pre></div></div>
+
+<h4 id="2-setup-bluetoothleadvertiser">2. Setup BluetoothLeAdvertiser</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val mBluetoothLeAdvertiser = mBluetoothAdapter.bluetoothLeAdvertiser;
+</code></pre></div></div>
+
+<h4 id="3-create-gattservercallback">3. Create GattServerCallback</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    inner class GattServerCallback : BluetoothGattServerCallback() {
+
+        override fun onDescriptorReadRequest(device: BluetoothDevice?, requestId: Int, offset: Int, descriptor: BluetoothGattDescriptor?) {
+
+        }
+
+        override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
+            super.onConnectionStateChange(device, status, newState);
+            
+        }
+
+        //RECEIVER END    
+        override fun onCharacteristicWriteRequest(device: BluetoothDevice?, requestId: Int, characteristic: BluetoothGattCharacteristic?, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?) {        
+
+        }
+
+        override fun onCharacteristicReadRequest(device: BluetoothDevice?, requestId: Int, offset: Int, characteristic: BluetoothGattCharacteristic?) {
+            super.onCharacteristicReadRequest(device, requestId, offset, characteristic)
+        }
+
+        override fun onDescriptorWriteRequest(device: BluetoothDevice?, requestId: Int, descriptor: BluetoothGattDescriptor?, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?) {
+            super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value)
+
+        }
+    }
+    val gattServerCallback = GattServerCallback()
+</code></pre></div></div>
+
+<h4 id="4-open-gatt-server">4. Open GATT Server</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var mGattServer: BluetoothGattServer? = mBluetoothManager.openGattServer(context, gattServerCallback)
+</code></pre></div></div>
+
+<h4 id="5-add-service-to-the-gatt-server">5. Add service to the GATT Server</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val service = BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+
+service.addCharacteristic(BleMessageUtil.prepareCharateristic(USER_META_DATA_UUID, USER_META_DATA_DESCRIPTOR_UUID))
+
+service.addCharacteristic(BleMessageUtil.prepareCharateristic(ONE_TO_ONE_MSG_UUID, ONE_TO_ONE_MSG_DESCRIPTOR_UUID))
+
+mGattServer?.addService(service)
+</code></pre></div></div>
+
+<h4 id="6-create-advertisecallback">6. Create AdvertiseCallback</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val mAdvertiseCallback = object : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+            sendLog("Peripheral advertising started.")
+        }
+
+        override fun onStartFailure(errorCode: Int) {
+            sendLog("Peripheral advertising failed: $errorCode")
+        }
+    }
+</code></pre></div></div>
+
+<h4 id="7-start-advertising-your-gatt-server">7. Start advertising your GATT server</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (mBluetoothLeAdvertiser == null) {
+            return
+        }
+val settings = AdvertiseSettings.Builder()
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setConnectable(true)
+                .setTimeout(0)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
+                .build()
+
+val parcelUuid = ParcelUuid(SERVICE_UUID)
+val data = AdvertiseData.Builder()
+                .setIncludeDeviceName(false)// because data is greater than 31 bytes
+                .addServiceUuid(parcelUuid)
+                .build()
+
+mBluetoothLeAdvertiser?.startAdvertising(settings, data, mAdvertiseCallback);
+</code></pre></div></div>
+
+<p>Reference</p>
+<ul>
+  <li>https://developer.android.com/guide/topics/connectivity/bluetooth-le</li>
+  <li>https://www.bignerdranch.com/blog/bluetooth-low-energy-part-1/</li>
+</ul>
+
+:ET

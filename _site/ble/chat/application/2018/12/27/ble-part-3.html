@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Bluetooth Low energy Chat Application Series #3 | Rahul Kumar Lohra</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Bluetooth Low energy Chat Application Series #3" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Bluetooth Low energy Chat Application Series" />
+<meta property="og:description" content="Bluetooth Low energy Chat Application Series" />
+<link rel="canonical" href="/ble/chat/application/2018/12/27/ble-part-3.html" />
+<meta property="og:url" content="/ble/chat/application/2018/12/27/ble-part-3.html" />
+<meta property="og:site_name" content="Rahul Kumar Lohra" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-12-27T01:15:01+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Bluetooth Low energy Chat Application Series #3" />
+<script type="application/ld+json">
+{"headline":"Bluetooth Low energy Chat Application Series #3","dateModified":"2018-12-27T01:15:01+05:30","datePublished":"2018-12-27T01:15:01+05:30","description":"Bluetooth Low energy Chat Application Series","url":"/ble/chat/application/2018/12/27/ble-part-3.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/ble/chat/application/2018/12/27/ble-part-3.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Rahul Kumar Lohra" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Rahul Kumar Lohra</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Bluetooth Low energy Chat Application Series #3</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2018-12-27T01:15:01+05:30" itemprop="datePublished">Dec 27, 2018
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h1 id="bluetooth-low-energy-chat-application-series">Bluetooth Low energy Chat Application Series</h1>
+
+<h3 id="overview-of-chat-application">Overview of Chat application:</h3>
+
+<ol>
+  <li>How Bluetooth Low energy device works <a href="/ble/chat/application/2018/12/27/ble-part-1.html">#Post 1</a></li>
+  <li>Setting up Gatt Server <a href="/ble/chat/application/2018/12/27/ble-part-2.html">#Post 2</a></li>
+  <li>Setting up Gatt Client</li>
+  <li>Sending Data over Bluetooth Low energy network</li>
+</ol>
+
+<h4 id="post-3---setting-up-gatt-client">Post 3 - Setting up Gatt Client</h4>
+
+<p>Things todo:</p>
+
+<ol>
+  <li>Declare global variables</li>
+  <li>Get Bluetooth Manage</li>
+  <li>Start scanning nearby devices</li>
+  <li>Get ScanCallback</li>
+  <li>Connect with scanned devices</li>
+  <li>Setup Gatt ClientCallback</li>
+  <li>Manage onConnectionStateChange</li>
+  <li>Discover Services of Server(a.k.a Bluetooth Gatt server)</li>
+  <li>Write your very first Descriptor</li>
+  <li>Handle BluetoothGattCallback.onDescriptorWrite(…)</li>
+  <li>Write your very first message from Gatt Client</li>
+  <li>Initialise mConnectedDevices: Inside Gatt server setup</li>
+</ol>
+
+<h2 id="0-declare-global-variables">0. Declare global variables</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var mGattConnectedMap = HashMap&lt;BluetoothGatt, Boolean&gt;()
+val mDeviceGattMap = HashMap&lt;BluetoothDevice, BluetoothGatt&gt;()
+val mGattDeviceMap = HashMap&lt;BluetoothGatt, BluetoothDevice&gt;()
+var mScanning = false
+val mScannedDeviceIds = HashSet&lt;String&gt;()
+val mConnectedDevices: ArrayList&lt;BluetoothDevice&gt; = ArrayList()
+val mGattClientCallbackMap = HashMap&lt;BluetoothDevice, GattClientCallback&gt;()
+var mClientScanCallback: ScanCallback? = null
+var mBluetoothLeScanner: BluetoothLeScanner? = null
+val mScannedDevices = HashSet&lt;BluetoothDevice&gt;()
+</code></pre></div></div>
+<h2 id="1-get-bluetooth-manager">1. Get Bluetooth Manager</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+</code></pre></div></div>
+
+<h2 id="2-start-scanning-nearby-devices">2. Start scanning nearby devices</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun startScanning(){
+if (mScanning) {
+    return
+}
+
+val filters = ArrayList&lt;ScanFilter&gt;()
+val settings = ScanSettings.Builder()
+        .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+        .build()
+filters.add(ScanFilter.Builder()
+        .setServiceUuid(ParcelUuid(SERVICE_UUID))
+        .build())
+
+mClientScanCallback = BluetoothScanCallback() // Will setup this in 3rd step
+mBluetoothLeScanner = mBluetoothAdapter.bluetoothLeScanner
+
+if (mBluetoothLeScanner == null) {
+      sendLog("mBluetoothLeScanner is NULL")
+} else {
+    mBluetoothLeScanner?.startScan(filters, settings, mScanCallback)
+}
+
+
+mScanning = true
+}
+</code></pre></div></div>
+
+<p>## 3. Get ScanCallback</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> private inner class BluetoothScanCallback : ScanCallback() {
+    override fun onScanResult(callbackType: Int, result: ScanResult)  
+     {
+        addScannedDevice(result)
+     }
+
+    override fun onBatchScanResults(results: List&lt;ScanResult&gt;) {
+        for (result in results) {
+            addScannedDevice(result)
+        }
+    }
+
+    override fun onScanFailed(errorCode: Int) {
+        Log.d("Scanning Failed with error code: $errorCode")
+    }
+
+
+    private fun addScannedDevice(result: ScanResult) {
+        val device = result.device
+        if (device != null &amp;&amp; device.address != null) {
+            mScannedDeviceIds.add(device.address)
+        }
+
+        if (!mScannedDevices.contains(device)) {
+            mScannedDevices.add(device)
+            Handler().postDelayed({ connectWithScannedDevice(device) }, 1000)
+        }
+    }
+}
+</code></pre></div></div>
+
+<h2 id="4-connect-with-scanned-devices">4. Connect with scanned devices</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun connectWithScannedDevice(device: BluetoothDevice) {
+    Log.d("connectDevice")
+    var mGattClientCallback = mGattClientCallbackMap[device]
+    if (mGattClientCallback == null) {
+        mGattClientCallback = GattClientCallback()
+        mGattClientCallbackMap[device] = mGattClientCallback
+    }
+    val mGatt = device.connectGatt(context, false, mGattClientCallbackMap[device])
+    mDeviceGattMap[device] = mGatt
+    mGattDeviceMap[mGatt] = device
+}
+</code></pre></div></div>
+
+<h2 id="5-setup-gatt-client-callback">5. Setup Gatt client callback</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>inner class GattClientCallback : BluetoothGattCallback() {
+
+    //SENDER
+    override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+        super.onCharacteristicWrite(gatt, characteristic, status)
+        handleOnCharacteristicWriteOfSender(gatt, characteristic, status)
+    }
+
+    
+    override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+        super.onDescriptorWrite(gatt, descriptor, status)
+        handleDescriptorWriteOfSender(gatt, descriptor, status)
+    }
+
+   
+    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+        super.onConnectionStateChange(gatt, status, newState)
+        handleOnConnectionStateChange(gatt, status, newState)
+    }
+
+   
+    override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+        super.onServicesDiscovered(gatt, status)
+        handleOnServicesDiscovered(gatt, status)
+    }
+
+   
+    override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
+        super.onCharacteristicChanged(gatt, characteristic)
+        handleOnCharacteristicChanged(gatt, characteristic)
+
+    }
+
+}
+</code></pre></div></div>
+
+<h2 id="6-manage-onconnectionstatechange">6. Manage onConnectionStateChange</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun handleOnConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int){
+if (status == BluetoothGatt.GATT_FAILURE) {
+       disconnectFromGattServer(gatt)
+       return
+   } else if (status != BluetoothGatt.GATT_SUCCESS) {
+       disconnectFromGattServer(gatt, true)
+       return
+   }
+   if (newState == BluetoothProfile.STATE_CONNECTED) {
+       handleConnectedStateOfClient(gatt)
+   } 
+      else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+       disconnectFromGattServer(gatt, true)
+   }
+}
+fun handleConnectedStateOfClient(bluetoothGatt: BluetoothGatt){
+   mGattConnectedMap[bluetoothGatt] = true
+   mDeviceGattMap[bluetoothGatt.device] = bluetoothGatt
+   mGattDeviceMap[bluetoothGatt] = bluetoothGatt.device
+   bluetoothGatt.discoverServices()
+}
+fun disconnectFromGattServer(gatt: BluetoothGatt, retry: Boolean = false){
+   mGattConnectedMap[gatt] = false
+   if (retry) {
+       gatt.connect()
+   } else {
+       gatt.disconnect()
+       gatt.close()
+   }
+}
+</code></pre></div></div>
+
+<blockquote>
+  <p>bluetoothGatt.discoverServices will call <strong><em>BluetoothGattCallback.onServicesDiscovered(…)</em></strong> . We have to handle this now</p>
+  <h2 id="7-discover-services-of-serveraka-bluetooth-gatt-server">7. Discover Services of Server(a.k.a Bluetooth Gatt server)</h2>
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun handleOnServicesDiscovered(gatt: BluetoothGatt?, status: Int){
+   if (status != BluetoothGatt.GATT_SUCCESS) {
+       return
+   }
+   if (gatt != null) {
+      writeFirstDescriptor(gatt)
+   }
+}
+</code></pre></div>  </div>
+  <h2 id="8-write-your-very-first-descriptor">8. Write your very first Descriptor</h2>
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun writeFirstDescriptor(gatt: BluetoothGatt){
+   val service = gatt.getService(SERVICE_UUID)
+   var metaDataCharacteristic = 
+       service.getCharacteristic(USER_META_DATA_UUID)
+   if (metaDataCharacteristic != null) {
+       metaDataCharacteristic.writeType =     
+       BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+var descriptor =  
+   metaDataCharacteristic.getDescriptor(USER_META_DATA_DESCRIPTOR_UUID)
+   descriptor?.value = 
+   BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+  if (descriptor != null) {
+      val descriptorWriteStartedSuccess = 
+            gatt.writeDescriptor(descriptor)
+        //check whether write is success or not
+    } else {
+        Log.d("DESCRIPTOR is null")
+   }
+  }
+}
+</code></pre></div>  </div>
+  <p>The important thing about writing first descriptor is basically that, the client will now receive a callback on <strong><em>BluetoothGattCallback.onDescriptorWrite(…)</em></strong>
+If we get a successful then it means two devices can now talk</p>
+</blockquote>
+
+<h2 id="9-handle-bluetoothgattcallbackondescriptorwrite">9. Handle BluetoothGattCallback.onDescriptorWrite(…)</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun handleDescriptorWriteOfSender (gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int){
+    if (status == BluetoothGatt.GATT_SUCCESS) {
+       sendYourVeryFirstMessage(gatt)
+   } else {
+       if (gatt != null &amp;&amp; mGattDeviceMap[gatt] != null) {         
+     handleFailureOfDescriptionWrite(mGattDeviceMap[gatt]!!.address)
+    }
+  }
+}
+</code></pre></div></div>
+<blockquote>
+  <p>If you want to send messages in queue fashion use a proper data structure for that. You also have to customise sendYourVeryFirstMessage(gatt). Remember the <strong><em>MTU(Maximum transfer unit)</em></strong> size for BLE will range from <strong>23</strong> bytes till <strong>512</strong> bytes</p>
+</blockquote>
+
+<blockquote>
+  <p>And you can definitely request to increase but I won’t recommend that because it will vary from device to device and OS to OS</p>
+</blockquote>
+
+<h2 id="10-write-your-very-first-message-from-gatt-client">10. Write your very first message from Gatt Client</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fun sendYourVeryFirstMessage(gatt: BluetoothGatt?, characteristicUuid: UUID = USER_META_DATA_UUID, bytes: ByteArray? = null){
+try {
+    if (gatt != null) {
+        val mGattConnected = mGattConnectedMap[gatt]
+        if ((mGattConnected == null || !mGattConnected) &amp;&amp; !mConnectedDevices.contains(gatt.device)) {
+            handleFailureOfSendingMessage()
+            return
+        }
+        val service = gatt.getService(SERVICE_UUID)
+        if (service != null) {
+            val characteristic = service.getCharacteristic(characteristicUuid)
+            characteristic?.value = bytes
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            val success = gatt.writeCharacteristic(characteristic)
+            //check for success writing
+            //You will get the message on    
+            //GattServerCallback.onCharacteristicWriteRequest(..)
+        } else {
+            handleFailureOfSendingMessage()
+        }
+    } else {
+        handleFailureOfSendingMessage()
+    }
+} catch (E: NullPointerException) {
+    handleFailureOfSendingMessage()
+}
+}
+</code></pre></div></div>
+<blockquote>
+  <p><strong><em>mConnectedDevices</em></strong>: A new variable, it should be defined in Gatt Server setup. I will show you the code below. handleFailureOfSendingMessage(): This functions basically handles the failed messages. For now we will do nothing</p>
+</blockquote>
+
+<h2 id="11-initialise-mconnecteddevices-inside-gatt-server-setup">11. Initialise mConnectedDevices: Inside Gatt server setup</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>inner class GattServerCallback : BluetoothGattServerCallback() {
+...
+override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int){
+    super.onConnectionStateChange(device, status, newState);
+    handleOnConnectionStateChangeServer(device, status, newState)
+}
+...
+}//end of inner class GattServerCallback
+fun handleOnConnectionStateChangeServer(bleDevice: BluetoothDevice?, status: Int, newState: Int){
+if (bleDevice != null) {
+    if (newState == BluetoothProfile.STATE_CONNECTED) {
+          mConnectedDevices.add(bleDevice)
+          connectNewDevice(bleDevice)
+      } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+          mConnectedDevices.remove(bleDevice)
+      }
+   }
+  }
+
+fun connectNewDevice(device:BluetoothDevice){
+  var mGattClientCallback = mGattClientCallbackMap[device]
+  if (mGattClientCallback == null) {
+  // Means a new device, so add it
+      mGattClientCallback = GattClientCallback()
+      mGattClientCallbackMap[device] = mGattClientCallback
+      val mGatt = device.connectGatt(context, false,  
+                  mGattClientCallbackMap[device])
+      mDeviceGattMap[device] = mGatt
+      mGattDeviceMap[mGatt] = device
+  }
+}
+
+</code></pre></div></div>
+
+<h4 id="important-notes">Important Notes:</h4>
+<blockquote>
+  <p>Our device is acting as both client and server, that’s why we have to save device’s reference from <strong><em>handleOnConnectionStateChangeServer(..)</em></strong></p>
+</blockquote>
+
+<p>At last, setting up Gatt client is completed 😌</p>
+
+<blockquote>
+  <p>Code: https://github.com/iamdangerous/Ble-Chat-Android-app/blob/post_3_setup_gatt_client/app/src/main/java/com/rahullohra/blechatapp/BluetoothController.kt</p>
+</blockquote>
+
+<h2 id="references">References</h2>
+<ul>
+  <li>https://www.bignerdranch.com/blog/bluetooth-low-energy-part-1/</li>
+  <li>https://www.bignerdranch.com/blog/bluetooth-low-energy-part-2/</li>
+</ul>
+
+
+  </div><a class="u-url" href="/ble/chat/application/2018/12/27/ble-part-3.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Rahul Kumar Lohra</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Rahul Kumar Lohra</li><li><a class="u-email" href="mailto:tgunix@gmail.com">tgunix@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/rahul-lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">rahul-lohra</span></a></li><li><a href="https://www.twitter.com/rahul_lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">rahul_lohra</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Android|Kotlin|Java|Flutter|Dart|Software Development</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

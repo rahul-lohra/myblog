@@ -1,0 +1,44 @@
+I"$
+<h1 id="bluetooth-low-energy-chat-application-series">Bluetooth Low energy Chat Application Series</h1>
+
+<h3 id="overview-of-chat-application--">Overview of Chat application -</h3>
+
+<ol>
+  <li>How Bluetooth Low energy device works</li>
+  <li>Setting up Gatt Server <a href="/ble/chat/application/2018/12/27/ble-part-2.html">#Post 2</a></li>
+  <li>Setting up Gatt Client <a href="/ble/chat/application/2018/12/27/ble-part-3.html">#Post 3</a></li>
+  <li>Sending Data over Bluetooth Low energy network</li>
+</ol>
+
+<h4 id="post-1---how-bluetooth-low-energy-device-works-in-general">Post 1 - How Bluetooth Low energy device works in general</h4>
+
+<p>Key components</p>
+
+<p><strong>Ble</strong> - Bluetooth Low energy device</p>
+
+<p><strong>GATT</strong> - Defines protocol(set of rules) on how data should be exchanged</p>
+
+<p><strong>GATT Server</strong> - Provides functionality to create <strong>Services</strong> and broadcast itself so other <strong>Gatt Client</strong> can connect to it. (can be slightly confusing, I know but don’t worry, this will be cleared later). Treat it as a web server.</p>
+
+<p><strong>Gatt Client</strong> - It is responsible for scanning nearby <strong>GATT Server</strong>, connecting to it and exchanging data(in terms of <strong>Characteristics</strong>).</p>
+
+<p><strong>Service</strong> - A service is a collection of characteristics. For example, you could have a service called “Heart Rate Monitor” that includes characteristics such as “heart rate measurement.”</p>
+
+<p><strong>Characteristics</strong> - It contains a value and a list of <strong>descriptors</strong></p>
+
+<p><strong>Descriptors</strong> - It contains a value and generally it is used as attributes of a <strong>Characteristics</strong></p>
+
+<p><strong>UUID</strong> - Just a unique identifier, on how to uniquely identify/create a Service or a characteristics or a descriptor.</p>
+
+<p>For exchanging data over http network, we need two devices one will act as a server and another will act as client. Eg - that’s how website work</p>
+
+<p>This same thing applies in Ble network, we need two devices one will act as a <strong>Gatt server</strong> and another will act as <strong>Gatt client</strong> for exchanging of data.</p>
+
+<p>And a device can be both Gatt Server and Gatt client.</p>
+
+<p>There are still some concepts left, I will teach them when they are used.</p>
+
+<p>For Android chat application, we will have two devices and they both will act as a Gatt Server and Gatt Client.</p>
+
+<p>Reference - https://developer.android.com/guide/topics/connectivity/bluetooth-le</p>
+:ET

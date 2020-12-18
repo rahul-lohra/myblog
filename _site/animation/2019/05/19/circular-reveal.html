@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Flutter: Create Circular Reveal Animation | Rahul Kumar Lohra</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Flutter: Create Circular Reveal Animation" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Android Kotlin Java Flutter Dart Software Development" />
+<meta property="og:description" content="Android Kotlin Java Flutter Dart Software Development" />
+<link rel="canonical" href="/animation/2019/05/19/circular-reveal.html" />
+<meta property="og:url" content="/animation/2019/05/19/circular-reveal.html" />
+<meta property="og:site_name" content="Rahul Kumar Lohra" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-05-19T01:13:01+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Flutter: Create Circular Reveal Animation" />
+<script type="application/ld+json">
+{"headline":"Flutter: Create Circular Reveal Animation","dateModified":"2019-05-19T01:13:01+05:30","datePublished":"2019-05-19T01:13:01+05:30","description":"Android Kotlin Java Flutter Dart Software Development","url":"/animation/2019/05/19/circular-reveal.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/animation/2019/05/19/circular-reveal.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Rahul Kumar Lohra" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Rahul Kumar Lohra</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Flutter: Create Circular Reveal Animation</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-05-19T01:13:01+05:30" itemprop="datePublished">May 19, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><img src="https://cdn-images-1.medium.com/max/2400/1*3hH6MTj1WF2O8IekzHNUdQ.gif" alt="Demo Application" /></p>
+
+<p>Breaking the animation:</p>
+<ol>
+  <li>The radius of the circle is increasing : <strong><em>AnimationController</em></strong></li>
+  <li>Drawing of the circle : <strong><em>CustomPainter</em></strong></li>
+  <li>There is also a fade out animation : <strong><em>AnimationController</em></strong></li>
+</ol>
+
+<p>Tap Behaviour (For simplicity: I will consider very minimal case)</p>
+<ol>
+  <li>Tap down: Radius starts to increase</li>
+  <li>Tap Up/Tap Cancel : Alpha is going from 40 to 0. (default alpha is 40 and alpha is of the reveal background)</li>
+</ol>
+
+<h2 id="classes--their-responsibilities">Classes &amp; their responsibilities:</h2>
+
+<h3 id="revealpaint">RevealPaint:</h3>
+<ol>
+  <li>Draw circle on our widget</li>
+  <li>Draw background with <strong>ARGB</strong> colour.</li>
+</ol>
+
+<h3 id="revealanimationcontroller">RevealAnimationController:</h3>
+<ol>
+  <li>Manage expand animation and fadeOut animation</li>
+  <li>Send callback to <strong><em>State (required to frequently draw on UI)</em></strong></li>
+</ol>
+
+<h3 id="state-class">State class:</h3>
+<ol>
+  <li>It will have reference of the Paint class, and it will give the <strong>arguments</strong> such as <strong>alpha</strong> value and <strong>radius</strong> to the paint class, and Paint class will just draw stuff.</li>
+  <li>It will obviously manage <strong>tapUp and tapDown behaviou</strong>r- which will tell when to start <strong>expand animation</strong> and when to start <strong>fade out animation</strong>
+    <blockquote>
+      <p>NOTE: The code is bit <strong>huge</strong>, I will only explain the very basic and core-concepts:
+Full source code: <a href="https://github.com/rahul-lohra/circular_reveal_widget">https://github.com/rahul-lohra/circular_reveal_widget</a></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="code">Code:</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class RevealPaint extends CustomPainter {
+  double fraction = 0.0;
+    double radius = 0;
+    Paint mPaint;
+    Offset offset;
+    int alpha = RevealAnimationController.MAX_ALPHA;
+    String revealColor = "F2F3F4";
+
+    RevealPaint() {
+      mPaint = Paint();
+      mPaint.color = HexColor("#$alpha$revealColor");
+      mPaint.style = PaintingStyle.fill;
+      offset = Offset(0, 0);
+    }
+
+    setAlpha(int alpha){
+      this.alpha = alpha;
+      mPaint.color = HexColor("#${alpha}$revealColor");
+    }
+
+    @override
+    void paint(Canvas canvas, Size size) {
+      double finalRadius = (radius * fraction);
+      canvas.drawCircle(offset, finalRadius, mPaint);
+    }
+
+    @override
+    bool shouldRepaint(RevealPaint oldDelegate) {
+      return true;
+    }
+}
+</code></pre></div></div>
+
+<p>Drawing is happening on <code class="language-plaintext highlighter-rouge">paint()</code> function. <strong>Radius</strong> and <strong>fraction</strong> values will be initialised dynamically — we will see later.</p>
+
+<p>We need code to <strong><em>start and stop</em></strong> the <strong>expand and fade</strong> animation. So we have <code class="language-plaintext highlighter-rouge">RevealAnimationController</code> here, it manages them</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class RevealAnimationController{
+  Animation&lt;double&gt; tweenExpand;  //contain animated value
+  Animation&lt;double&gt; tweenFade;    //contain animated value
+  VoidCallback tweenFadeCallback; //they are listeners to the animation
+  VoidCallback tweenExpandCallback;
+  AnimationController expandAnimationController;    
+  AnimationController fadeAnimController;
+  RevealAnimationController(
+      TickerProviderStateMixin mixin, ControllerCallback callback) {
+  expandAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800), vsync: mixin);
+  fadeAnimController = AnimationController(
+      duration: const Duration(milliseconds: 300), vsync: mixin);
+
+  tweenFade =
+      Tween&lt;double&gt;(begin: MAX_ALPHA.toDouble(), end: MIN_ALPHA.toDouble())
+          .animate(fadeAnimController);
+
+  tweenExpand = Tween&lt;double&gt;(begin: MIN_TWEEN_VALUE, end: MAX_TWEEN_VALUE)
+      .animate(animaController);
+  }
+  startAnimation() {
+      expandAnimationController.forward();
+  }
+  startFadeOutAnim() {
+      fadeAnimController.forward();
+  }
+  resetExpandAnim() {    
+      expandAnimationController.reset();
+  }
+  _prepareTweenCallback() {
+    tweenFadeCallback = () {
+        int val = tweenFade.value.toInt();
+        callback.onAlphaUpdate(val);    
+    };
+
+    tweenExpandCallback = () {
+      fraction = tweenExpand.value;
+        if (tweenExpand.value == MAX_TWEEN_VALUE) {
+          callback.onAnimationComplete(fraction);
+        } else {
+          callback.onAnimationUpdate(fraction, alpha);
+        }
+    };
+  }
+}
+</code></pre></div></div>
+<p>Now we need a way to tell out <code class="language-plaintext highlighter-rouge">Paint</code> class to draw circle with some <strong>colours and alpha</strong> value</p>
+
+<p>Now we have a <code class="language-plaintext highlighter-rouge">ControllerCallback</code>(custom made) <strong>interface, it will basically give updates to our State class. And this State class will</strong> force the Paint class to re-draw stuffs on our widget.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class RevealState extends State
+    with TickerProviderStateMixin, ControllerCallback {
+  Widget child;
+  RevealAnimationController controller;
+  RevealPaint revealPaint;
+  RevealState(Widget child) {
+    this.child = child;
+    controller = RevealAnimationController(this, this);
+  }
+  @override
+  Widget build(BuildContext context) {
+    List&lt;Widget&gt; widgetList = List();
+    widgetList.add(child);
+
+    if (enableReveal) {
+      revealPaint = RevealPaint();
+      revealPaint.radius = max(renderBoxSize.height, renderBoxSize.width) + 10;
+      revealPaint.fraction = controller.fraction;
+      revealPaint.setAlpha(controller.alpha);
+      revealPaint.offset = offset;
+
+      widgetList.add(revealWidget(renderBoxSize, revealPaint));
+    }
+
+    return getTapWidget(widgetList);
+  }
+  Widget revealWidget(Size _size, CustomPainter paint) {
+    return ClipRRect(
+      borderRadius: BorderRadius.zero,
+      child: CustomPaint(
+        size: _size,
+        painter: paint,
+      ),
+    );
+  }
+}
+</code></pre></div></div>
+<p>Inside the build functions we are <strong>setting arguments our <code class="language-plaintext highlighter-rouge">Paint</code> class</strong></p>
+
+<p>In the above class we have some callbacks</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  @override
+  void onAnimationUpdate(double fraction, int alpha) {
+    setState(() {
+      controller.fraction = fraction;
+    });
+  }
+
+  @override
+  void onAnimationComplete(double fraction) {
+    setState(() {
+      controller.fraction = fraction;
+    });
+  }
+
+  @override
+  void onAlphaUpdate(int alpha) {
+    setState(() {
+      controller.alpha = alpha;
+    });
+  }
+</code></pre></div></div>
+
+<p>We are calling <code class="language-plaintext highlighter-rouge">setState</code> — It will force to re-render the <code class="language-plaintext highlighter-rouge">widget</code>, means the <code class="language-plaintext highlighter-rouge">build</code> function will be called again and again.</p>
+
+<p>Now how to <strong>start or stop</strong> expand and fade <strong>animations</strong>, — We will <code class="language-plaintext highlighter-rouge">GestureDetector</code> for this</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Widget getTapWidget(List&lt;Widget&gt; widgetList) {
+  return GestureDetector(
+    child: Stack(children: widgetList),
+    onLongPressMoveUpdate: (e) {
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onHorizontalDragUpdate: (e){
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onVerticalDragUpdate: (e){
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onTapUp: (e){
+      handleTapUp();
+    },
+    onLongPressUp: (){
+      handleTapUp();
+    },
+    onTapDown: (e) {
+      handleTapDown(e);
+    },
+  );
+}
+void handleFingerMove(double pos) {
+  //Codes are removed for simplicity
+    handleTapUp();
+}
+
+void handleTapDown(TapDownDetails e) {
+  setState(() {
+  //Codes are removed for simplicity
+    startAnimation();
+  });
+}
+void handleTapUp() {
+  controller.stopAnimation();
+}
+
+void startAnimation() {
+  controller.startAnimation();
+}
+</code></pre></div></div>
+
+<p>That’s it. check the readme of the library. Its very simple</p>
+
+<p><strong>Finally, this is our library’s widget</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class RevealWidget extends StatefulWidget{
+  Widget child;
+  RevealWidget(this.child);
+  @override
+  State&lt;StatefulWidget&gt; createState() {
+    return RevealState(child);
+  }
+}
+</code></pre></div></div>
+
+<h3 id="thats-how-we-use-it"><strong>That’s how we use it.</strong></h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class ButtonWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return RevealWidget(Container(
+        color: Colors.red,
+        width: 100,
+        height: 60,
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            "Hello",
+            style: TextStyle(fontSize: 20),
+          ),
+        )));
+  }
+}
+</code></pre></div></div>
+
+<blockquote>
+  <p>Full source code: <a href="https://github.com/rahul-lohra/circular_reveal_widget">https://github.com/rahul-lohra/circular_reveal_widget</a></p>
+</blockquote>
+
+<p><strong>Package: <a href="https://pub.dev/packages/circular_reveal">https://pub.dev/packages/circular_reveal</a></strong></p>
+
+  </div><a class="u-url" href="/animation/2019/05/19/circular-reveal.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Rahul Kumar Lohra</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Rahul Kumar Lohra</li><li><a class="u-email" href="mailto:tgunix@gmail.com">tgunix@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/rahul-lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">rahul-lohra</span></a></li><li><a href="https://www.twitter.com/rahul_lohra"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">rahul_lohra</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Android|Kotlin|Java|Flutter|Dart|Software Development</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,1436 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2020-12-19T04:00:10+05:30</updated><id>/feed.xml</id><title type="html">Rahul Kumar Lohra</title><subtitle>Android|Kotlin|Java|Flutter|Dart|Software Development</subtitle><entry><title type="html">Intellij Plugin: Create Gql Formatter Plugin</title><link href="/plugin/2020/07/19/create-gql-formatter-plugin.html" rel="alternate" type="text/html" title="Intellij Plugin: Create Gql Formatter Plugin" /><published>2020-07-19T01:13:01+05:30</published><updated>2020-07-19T01:13:01+05:30</updated><id>/plugin/2020/07/19/create-gql-formatter-plugin</id><content type="html" xml:base="/plugin/2020/07/19/create-gql-formatter-plugin.html">&lt;p&gt;We will create a GQL Formatter Plugin&lt;/p&gt;
+
+&lt;p&gt;This is what we are going to create: 
+Plugin link: &lt;a href=&quot;https://plugins.jetbrains.com/plugin/14709-gql-formatter/versions/stable/92155&quot;&gt;https://plugins.jetbrains.com/plugin/14709-gql-formatter/versions/stable/92155&lt;/a&gt;
+Full source code: &lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;before-formatting-is-applied&quot;&gt;Before formatting is applied&lt;/h3&gt;
+
+&lt;div class=&quot;big-pic-div&quot;&gt;
+&lt;img class=&quot;big-pic&quot; src=&quot;https://cdn-images-1.medium.com/max/2704/1*uI8o0bF9p2RyAUq0lqPtLw.png&quot; /&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;after-formatting-is-applied&quot;&gt;After formatting is applied&lt;/h3&gt;
+
+&lt;div class=&quot;big-pic-div&quot;&gt;
+&lt;img class=&quot;big-pic&quot; src=&quot;https://cdn-images-1.medium.com/max/2598/1*dxRICzA7RWva8lEcnMk12w.png&quot; /&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The language used is &lt;strong&gt;Kotlin&lt;/strong&gt; but the concepts will remain same so don’t worry if you don’t know Kotlin&lt;/p&gt;
+
+&lt;p&gt;What it does:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;It will reformat your GQL query that is stored in some variable (The idea is very similar to JSON Formatter)&lt;/li&gt;
+  &lt;li&gt;You can then replace this formatted GQL query into that variable&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;What do we need to do to build this&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;We will need a UI where we will see our formatted code&lt;/li&gt;
+  &lt;li&gt;We need to read the code from the file&lt;/li&gt;
+  &lt;li&gt;We need to write th formatted code back to the file and override the variable’s value&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Concepts that will be used:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Editor&lt;/li&gt;
+  &lt;li&gt;Tool windows (Swing GUI)&lt;/li&gt;
+  &lt;li&gt;File Reading/Writing via PsiElementVisitor&lt;/li&gt;
+  &lt;li&gt;Creating PsiElement (String template)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Why do we need it:
+To keep our GQL query code consistent across our project and it is also readable now&lt;/p&gt;
+
+&lt;p&gt;We have to cover these parts:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Setup basic project to develop plugin&lt;/li&gt;
+  &lt;li&gt;Create UI where we will see our formatted Code&lt;/li&gt;
+  &lt;li&gt;Format GQL query with our code&lt;/li&gt;
+  &lt;li&gt;Paste the code back to the source code from your tool window&lt;/li&gt;
+  &lt;li&gt;Few things about publishing plugin&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;1-setup-basic-project&quot;&gt;1. Setup Basic Project&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*n7IbaTABjbCXulm2GQVlgA.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*BBsAu7DV75xlBGAPVQ5H5w.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;strong&gt;finish&lt;/strong&gt;. Beware this project will download at least &lt;strong&gt;&lt;em&gt;500mb&lt;/em&gt;&lt;/strong&gt; of data for every time you will create an IntelliJ Platform Plugin. Actually it will download IntelliJ SDK.&lt;/p&gt;
+
+&lt;p&gt;But we can avoid that and use from local &lt;em&gt;(This is totally optional)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Original(default) build.gradle&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.21'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+intellij {
+    version '2020.1.1' // this is reason for 500mb download
+}
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we need to pass local path of IntelliJ like below:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;intellij {
+    localPath &quot;/home/rahulkumarlohra-xps/IdeaProjects/ideaIC-2020.1&quot;
+}
+//If you get some errors like annotations not found then make them available like this
+dependencies {
+    compile group: 'org.jetbrains', name: 'annotations', version: '19.0.0'
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Like to build.gradle: &lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/build.gradle&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/build.gradle&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Let’s see one more file which is auto-created: &lt;strong&gt;&lt;em&gt;plugin.xml&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/112ab9e9fec1d858f676226579fa9d44.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;You might get some error initially, it is basically like a warning that you should enter the values for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;name,description,vendor details&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Few tips&lt;/strong&gt;:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt;: Should be your package name and should be unique&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;description&lt;/code&gt;: You can use &lt;strong&gt;HTML&lt;/strong&gt; tags here&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;2-create-ui-where-we-will-see-our-formatted-code&quot;&gt;2. Create UI where we will see our formatted Code&lt;/h2&gt;
+
+&lt;p&gt;This is what we will create&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*poxsoQx4wW4BKU2QxRKEwQ.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Functionalities of this tool:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Import&lt;/strong&gt;: It will get the value stored in the variable which is provided in this white box&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Replace&lt;/strong&gt;: It will set back the formatted value to the original source code file&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This is how it will look once we have filled some values on it&lt;/p&gt;
+
+&lt;div class=&quot;big-pic-div&quot;&gt;
+&lt;img class=&quot;big-pic&quot; src=&quot;https://cdn-images-1.medium.com/max/3838/1*u4zyTtN8vR101wHggAeXfg.png&quot; /&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;(Optional)&lt;/strong&gt;We are going to create a &lt;strong&gt;Swing GUI&lt;/strong&gt;. If you are new to Swing GUI then watch this video to understand how to create Swing GUI : &lt;a href=&quot;https://www.youtube.com/watch?v=5vSyylPPEko&quot;&gt;https://www.youtube.com/watch?v=5vSyylPPEko&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;follow-these-steps-to-create-the-ui&quot;&gt;Follow these steps to create the UI&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*fKB3EeqE87GZx6kxDGNquQ.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;div style=&quot;text-align:center&quot;&gt;
+    &lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*o8kf0x7yNmxS_CquO0r6_A.png&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;After tapping on &lt;strong&gt;OK : Two files will be created for and those are:&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;GqlView.java&lt;/li&gt;
+  &lt;li&gt;GqlView.form&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;gqlviewjava&quot;&gt;GqlView.java&lt;/h3&gt;
+
+&lt;p&gt;This file will contain all the UI elements as member variables and you can add listeners to these views&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/e2860d237e6e31126928e70cc5a6c79c.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;All the member variables are auto-generated and they automatically linked with their respective UIs&lt;/p&gt;
+
+&lt;h3 id=&quot;gqlviewform&quot;&gt;GqlView.form&lt;/h3&gt;
+&lt;p&gt;This is actually an XML file that contains all the Swing UI elements and also how each one they are relatively placed(positioned) 
+The IDE generally do not allow us to directly edit this XML file. It has its own drag and drop user interface to create the UI. In the below picture, you can see the&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Palette window to the extreme right.&lt;/li&gt;
+  &lt;li&gt;Component Tree&lt;/li&gt;
+  &lt;li&gt;Actual UI&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This is how the GqlView.form should look &lt;strong&gt;initially&lt;/strong&gt;, right after it is created&lt;/p&gt;
+
+&lt;div class=&quot;big-pic-div&quot;&gt;
+&lt;img class=&quot;big-pic&quot; src=&quot;https://cdn-images-1.medium.com/max/3840/1*j4krKSPrlt_58qJNoTDpyw.png&quot; /&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Use this &lt;strong&gt;&lt;em&gt;Two code snippets&lt;/em&gt;&lt;/strong&gt; to &lt;strong&gt;create the final UI&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/GqlView.form&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/GqlView.form&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;After copy-pasting the content we should see UI like this:&lt;/p&gt;
+
+&lt;div class=&quot;big-pic-div&quot;&gt;
+&lt;img class=&quot;big-pic&quot; src=&quot;https://cdn-images-1.medium.com/max/2752/1*dGUAE9G5qnvuC0yEozbUYg.png&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Since we have manually edited the GqlView.form so that’s why we also need to manually edit the GqlView&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/e2860d237e6e31126928e70cc5a6c79c.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;The UI should be ready now&lt;/p&gt;
+
+&lt;h3 id=&quot;add-this-ui-to-a-tool-window&quot;&gt;Add this UI to a Tool Window&lt;/h3&gt;
+
+&lt;p&gt;Things to do&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Create a class that will be registered as Tool Window (creation + registration)&lt;/li&gt;
+  &lt;li&gt;That class should also render the UI that we just created (Connect that class to our UI class)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;create-toolwindow&quot;&gt;Create Toolwindow&lt;/h3&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/1ebf759f26202a86e72481746a349836.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;We have 2 things&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Implement &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ToolWindowFactory&lt;/code&gt;: this class will be registered later&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;override createToolWindowContent&lt;/code&gt; : In this method, we are just attaching the UI to this &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Toolwindow&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Register the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Toolwindow&lt;/code&gt; like below on &lt;strong&gt;&lt;em&gt;plugin.xml&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/1f61b908221d00fa21a14cc5932bc5ee.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt;: It will be the name displayed over your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;toolwindow&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;anchor&lt;/code&gt;: Position where the toolwindow will be displayed&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;factoryClass&lt;/code&gt;: Points to our newly created &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ToolWindowclass&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;3-format-gql-query-with-our-code&quot;&gt;3. Format GQL Query with our code&lt;/h2&gt;
+
+&lt;p&gt;I have already written code for this. No explanation needed, but you can see some of the examples of GQL query to get an idea of that: &lt;a href=&quot;https://graphql.org/learn/queries/&quot;&gt;https://graphql.org/learn/queries/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This is my code(might be difficult to understand so feel free to skip it): &lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/parser/NodeCreator.kt&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/parser/NodeCreator.kt&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Let’s just say we have an API to get formatted GQL Query:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val nodeCreator = NodeCreator()
+val node = nodeCreator.createNode(unformatted text)
+val nodeText = nodeCreator.prettyPrint2(node, offset)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The nodeText will return the formatted GQL query&lt;/p&gt;
+
+&lt;p&gt;Now we need some logic(or API) to get variable’s value which is in our kotlin file. You can say we have to parse our code and extract the necessary information. To do this we have to understand a new concept &lt;strong&gt;PSI&lt;/strong&gt; (It’s super easy don’t worry)&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;PSI&lt;/strong&gt; : Program Structure Interface : Its responsible for &lt;strong&gt;parsing&lt;/strong&gt; your file and getting &lt;strong&gt;meaningful data&lt;/strong&gt; from it. Like it you can directly go to any comments, or variables or any functions. (link: &lt;a href=&quot;https://jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi.html&quot;&gt;https://jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi.html&lt;/a&gt;)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;PsiElements&lt;/strong&gt;: A file is represented as &lt;strong&gt;&lt;em&gt;tress of PsiElements&lt;/em&gt;&lt;/strong&gt;. (link: &lt;a href=&quot;https://jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi_elements.html&quot;&gt;https://jetbrains.org/intellij/sdk/docs/basics/architectural_overview/psi_elements.html&lt;/a&gt;). It is very similar to the Tree data structure where you have many nodes connected to each other and every node might have some special property. Eg one of them can be a function or a comment or a class name or a string value or import statements&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;To visually see how it looks you can do this&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Navigate to any file&lt;/li&gt;
+  &lt;li&gt;Tools -&amp;gt; View PSI Structure of Current file&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2304/1*s1BK_z7N-AZxvuCWiugeAA.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we need a way to &lt;strong&gt;&lt;em&gt;navigate&lt;/em&gt;&lt;/strong&gt; through this PSI elements and find our variable where the String is stored&lt;/p&gt;
+
+&lt;p&gt;We will use &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KtTreeVisitorVoid&lt;/code&gt;&lt;/strong&gt; from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;package org.jetbrains.kotlin.psi&lt;/code&gt;. It will help to navigate through &lt;strong&gt;Kotlin’s PSI Element&lt;/strong&gt;. If you want to parse a Java file then you can use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;JavaRecursiveElementVisitor&lt;/code&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;To use &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KtTreeVisitorVoid&lt;/code&gt;&lt;/strong&gt; we have to add its dependency. One thing to note is we need to add dependency on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; but &lt;strong&gt;not on&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt;, like this:&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;idea-plugin&amp;gt;
+....
+    &amp;lt;depends&amp;gt;org.jetbrains.kotlin&amp;lt;/depends&amp;gt;
+
+    &amp;lt;extensions defaultExtensionNs=&quot;com.intellij&quot;&amp;gt;
+         &amp;lt;toolWindow
+            id=&quot;Gql Format&quot; anchor=&quot;right&quot; factoryClass=&quot;com.rahul.gqlformat.MyToolWindow&quot;&amp;gt;
+         &amp;lt;/toolWindow&amp;gt;
+    &amp;lt;/extensions&amp;gt;
+....
+
+&amp;lt;/idea-plugin&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here is the documentation of plugin dependencies: &lt;a href=&quot;https://jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html#declaring-plugin-dependencies&quot;&gt;https://jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html#declaring-plugin-dependencies&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;add-logic-to-parse-the-file&quot;&gt;Add logic to parse the file&lt;/h3&gt;
+
+&lt;p&gt;We will create a class named EditorLogic.kt : it is responsible for&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Get &lt;strong&gt;currently opened&lt;/strong&gt; file&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Traversing&lt;/strong&gt; the code&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Extract&lt;/strong&gt; the value assigned in variable&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Pass&lt;/strong&gt; that value to our NodeCreater (it will reformat the GQL)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Paste&lt;/strong&gt; the formatted value into the ToolWindow&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Replace&lt;/strong&gt; the original value with our formatted value from ToolWindow&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Currently opened file: will use FileEditorManager to get current PsiFile&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Code Traversal: we will use KtTreeVisitorVoid&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Value Extraction: override visitProperty(property:KtPropery)&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Passing value does not require any explanation&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Pasting value to our Toolwindow: we will do this : textArea.text=”our formatted text”&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/5b680026de04b95926b4e8e1d913ac06.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;div style=&quot;display:flex&quot;&gt;
+    &lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*rzOxZOE-1SnVITj94iRpbg.png&quot; /&gt;
+    &lt;div style=&quot;margin-left:16px;
+    margin-top:40%&quot;&gt;
+        &lt;p&gt;This diagram will be useful to understand the code flow from our input till we paste the formatted code to our tool window&lt;/p&gt;       
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Explanation of keywords:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KtBinaryExpression&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KtStringTemplateExpression&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KtDotQualifiedExpression&lt;/code&gt;
+Our intention is to &lt;strong&gt;&lt;em&gt;extract the assigned value&lt;/em&gt;&lt;/strong&gt;(String) from the variable. But the assigned value can be of above different types(there can be more)
+Here are the examples for the above elements&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2074/1*oY5q1LPGbbZBDvaHk2JllQ.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we need to see how we are &lt;strong&gt;&lt;em&gt;passing the variable name&lt;/em&gt;&lt;/strong&gt;. It’s a simple click event added on the button Import of our ToolWindow&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*2xCdx0Tp7DXwgc10HxcWvg.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/0f1a04b17897bbfba82eec2279b7e835.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Cool now we should be able to at least see the formatted GQL query in our tool window&lt;/p&gt;
+
+&lt;h2 id=&quot;4-paste-the-formatted-gql-query-back-to-our-file&quot;&gt;4. Paste the formatted GQL query back to our file&lt;/h2&gt;
+
+&lt;p&gt;Things to do:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Replace existing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsiElement&lt;/code&gt; with formatted &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;String&lt;/code&gt;:&lt;/strong&gt; Means we have to &lt;em&gt;create a new PsiElement&lt;/em&gt; and will need to store formatted String into it and then need to replace it with the original PsiElement which has an unformatted query&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Use proper indent&lt;/strong&gt;(optional)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Handle dollar sign&lt;/strong&gt;: because Kotlin treats dollar sign in a different way, for eg it can be used as a placeholder and much more&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;replacing-psielement&quot;&gt;Replacing PsiElement&lt;/h3&gt;
+
+&lt;p&gt;API to replace &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsiElement&lt;/code&gt; is very simple:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PsiElement.resplace(newPsiElement)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And we just need to wrap this inside another block else we will get exceptions:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;WriteCommandAction.runWriteCommandAction(project) {
+    oldPsiElemet.replace(newPsiElement)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This is how we are creating &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;newPsiElement&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val newPsiElement = KtPsiFactory(psiElement.project).createStringTemplate(text)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;use-proper-indent&quot;&gt;Use proper indent&lt;/h3&gt;
+
+&lt;p&gt;We need to know where should we start our string. In the below figure we need to know how &lt;strong&gt;&lt;em&gt;FAR the variable is from the left&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*DAKnio9FLahO5SKQsWN4KQ.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We have an api for this: it will tell give us the column no(start point) of the variable&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val editor = FileEditorManager.getInstance(psiElement.project).selectedTextEditor
+val variableCol = (editor as EditorImpl).offsetToLogicalPosition(psiElement.parent.textOffset).column
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here the PsiElemt refers to the String value, that’s why we have taken &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;psiElement.parent&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;dollar-sign&quot;&gt;Dollar Sign&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;As of now, we are changing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;${“$”}&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;${“$”}&lt;/code&gt; will be ignored&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;We have used regular expression for this, the code might look difficult, but it’s very easy, just go through it doesn’t require any explanation&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahul-lohra/a66c4a57ab481fe8fc74a8a0880946e8.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Cool.. we have covered all the logics. In short, this is what we did:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*LvDfOCb_aTDZ617lbhMZyQ.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Full source code of EditorLogic.kt : &lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/EditorLogic.kt&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin/blob/master/src/main/java/com/rahul/gqlformat/EditorLogic.kt&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;5-few-things-about-publishing-plugin&quot;&gt;5. Few things about publishing plugin&lt;/h2&gt;
+
+&lt;p&gt;This is very straight forward and easy and there are multiple ways to upload.&lt;/p&gt;
+
+&lt;p&gt;From Gradle: &lt;a href=&quot;https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html&quot;&gt;https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I am showing you the simplest one. 
+You can follow this guide: &lt;a href=&quot;https://jetbrains.org/intellij/sdk/docs/basics/getting_started/publishing_plugin.html&quot;&gt;https://jetbrains.org/intellij/sdk/docs/basics/getting_started/publishing_plugin.html&lt;/a&gt;
+It is basically&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Login to JetBrains account&lt;/li&gt;
+  &lt;li&gt;Choose upload plugin&lt;/li&gt;
+  &lt;li&gt;A form will be displayed and it will ask for jar/zip
+You can run this command from your root project to get the jar/zip&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./gradlew buildPlugin
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will create a zip or jar in &lt;strong&gt;build/distributions/plugin-name.jar&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;You can upload this file on their site&lt;/p&gt;
+
+&lt;p&gt;After uploading the plugin, kindly fill as much information about your plugin as you can. 
+Like: How to use, what things are supported, put screenshots, video links else the reviewer will tell these things to you&lt;/p&gt;
+
+&lt;p&gt;Full source code: &lt;a href=&quot;https://github.com/rahul-lohra/gql-formatter-plugin&quot;&gt;https://github.com/rahul-lohra/gql-formatter-plugin&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Plugin link: &lt;a href=&quot;https://plugins.jetbrains.com/plugin/14709-gql-formatter/versions/stable/92155&quot;&gt;https://plugins.jetbrains.com/plugin/14709-gql-formatter/versions/stable/92155&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Thanks for reading
+Please feel free to correct anything if something is wrong&lt;/p&gt;</content><author><name></name></author><category term="Plugin" /><summary type="html">We will create a GQL Formatter Plugin</summary></entry><entry><title type="html">Shadow Constraint Layout with Round Corners</title><link href="/android/2019/11/02/shadow-constraint-layout-with-round-corners.html" rel="alternate" type="text/html" title="Shadow Constraint Layout with Round Corners" /><published>2019-11-02T01:13:01+05:30</published><updated>2019-11-02T01:13:01+05:30</updated><id>/android/2019/11/02/shadow-constraint-layout-with-round-corners</id><content type="html" xml:base="/android/2019/11/02/shadow-constraint-layout-with-round-corners.html">&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ConstraintLayout&lt;/code&gt; with its own shadow and we will apply round corners around it just like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CardView&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Few Good things:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;No need to put &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ConstraintLayout&lt;/code&gt; inside &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CardView&lt;/code&gt; anymore&lt;/li&gt;
+  &lt;li&gt;You can draw custom shadows as well&lt;/li&gt;
+  &lt;li&gt;Use same technique with any view&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Prequisites&lt;/strong&gt; (Good if you know these things otherwise don’t worry):&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Canvas&lt;/code&gt; x,y corrdinate&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PorterDuffXfermode&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Paint&lt;/code&gt; class&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Path&lt;/code&gt; class&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Things we need to do&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Draw shadow&lt;/li&gt;
+  &lt;li&gt;Draw a border around the view&lt;/li&gt;
+  &lt;li&gt;Clip the view with RoundRorners&lt;/li&gt;
+  &lt;li&gt;Fill your view with white color: so you can see the border &amp;amp; shadow &amp;amp; you must draw this &lt;strong&gt;over your shadow paint&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;draw-shadow-around-your-view&quot;&gt;Draw shadow around your view&lt;/h2&gt;
+
+&lt;p&gt;Classes required&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Paint&lt;/code&gt; : to paint with shadow color&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Path&lt;/code&gt; : To give a path to shadow and that is around the view like a RECTANGLE&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahullohra2903/9bdebadd1a56ceedc8249a5378f4db07.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val porterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+val blurMaskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
+
+shadowPaint.xfermode = porterDuffXfermode
+shadowPaint.maskFilter = blurMaskFilter
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The shadow is blurry that’s why we have used blurMaskFilter. And blurMaskFilter will only blur your color
+The shadow should not overlap the content of your constraint layout that’s why we used PorterDuffXfermode&lt;/p&gt;
+
+&lt;p&gt;Now we setting up paint is completed. We have to give it a path and that’s a rectangle&lt;/p&gt;
+
+&lt;p&gt;So the we are going to write something like this.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Goto to start point&lt;/li&gt;
+  &lt;li&gt;Make a rectangle from there and at last come back from where you started&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;blockquote&gt;
+  &lt;ol&gt;
+    &lt;li&gt;shadowPath.goToStartPosition()&lt;/li&gt;
+    &lt;li&gt;shadowPath.move_to_top_left_from_top_right&lt;/li&gt;
+    &lt;li&gt;shadowPath.move_to_bottom_left_from_top_left&lt;/li&gt;
+    &lt;li&gt;shadowPath.move_to_bottom_right_from_bottom_left&lt;/li&gt;
+    &lt;li&gt;shadowPath.move_to_top_right_from_bottom_right&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&quot;-&amp;gt;&quot; denotes : From
+
+shadowPath.moveTo(width, 0f)                    //Top Right
+shadowPath.lineTo(0, 0)                         // TR -&amp;gt; TL
+shadowPath.lineTo(0,height)                     // TL -&amp;gt; BL 
+shadowPath.lineTo(width,height)                 // BL -&amp;gt; BR
+shadowPath.lineTo(width, shadowStartY)          // BR -&amp;gt; TR            
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Cool the paint and path are set. We just need to pass commands to draw it on canvas&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;canvas.drawPath(shadowPath, shadowPaint)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That’s it.. This is what you will see&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*IjOlpc-QYdzQgSwwGghiSg.png&quot; /&gt;
+  &lt;br /&gt;
+  Rectangular shadow
+&lt;/p&gt;
+
+&lt;p&gt;The toughest part is done, now only comes the easy part&lt;/p&gt;
+
+&lt;h2 id=&quot;draw-a-border-around-the-view&quot;&gt;Draw a border around the view&lt;/h2&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahullohra2903/2f280df11927891caa9491a5d60bcc3d.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;We are using &lt;strong&gt;&lt;em&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;canvas.drawRoundRect(rect,paint)&lt;/code&gt; to draw. It requires a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Rect&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paint&lt;/code&gt; and we have provided both&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;clip-the-view-with-roundrorners&quot;&gt;Clip the view with RoundRorners&lt;/h2&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahullohra2903/248133957438cf7a069464cca2cb7f79.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;At the end we doing&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;canvas.clipPath(clipPath)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This means we want to clip this part(defined via clipPath) of canvas. And out future drawing commands must happen within the bounds of this &lt;em&gt;clipPath&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;In real app we will do something like this&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class MyLayout:View {
+  fun override fun dispatchDraw(canvas: Canvas) {
+    clipRoundCorners(canvas)
+    super.dispatchDraw(canvas)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Our job is to draw round corners around our view and also ensure your child views should not be drawn on that area. So we should write this function inside dispatchDraw. We can change the canvas before a child is drawn : &lt;a href=&quot;https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)&quot;&gt;https://developer.android.com/reference/android/view/ViewGroup.html#dispatchDraw(android.graphics.Canvas)&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;fill-your-view-with-white-color&quot;&gt;Fill your view with white color&lt;/h2&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahullohra2903/77a196b4bd12fe94e03d4355f73023ce.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Code should look pretty straight forward.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;canvas.drawRoundRect(rectBackgroundRectF, cornerRadius, cornerRadius, rectPaint)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paint&lt;/code&gt; object has &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rectPaint.xfermode = porterDuffXfermode&lt;/code&gt;, to ensure the paint should come on top of shadow&lt;/p&gt;
+
+&lt;p&gt;Final code should be like this&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class MyLayout:View {
+    override fun dispatchDraw(canvas: Canvas) {
+       clipRoundCorners(canvas)
+       super.dispatchDraw(canvas)
+    }
+    override fun onDraw(canvas: Canvas){
+       drawShadow(canvas)
+       drawBorder(canvas)
+       drawRectBackground(canvas)
+       super.onDraw(canvas)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Full source code:&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/rahullohra2903/5b5cbdb41cbc2fc94fc486fb9383554c.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p align=&quot;center&quot;&gt;Full code snipet and how to use&lt;/p&gt;
+
+&lt;p&gt;1 very importatnt thing you have to do this in your parent view&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;android:clipChildren=&quot;false&quot;
+android:clipToPadding=&quot;false&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;From these two commands we are telling the Android that parent view must not clip the views of ShadowConstraintLayot if the views are getting drawn outside of its bouds.&lt;/p&gt;
+
+&lt;p&gt;This is the final result..&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*iGOKfGtpeKS9I67PiCi5lQ.png&quot; alt=&quot;Left one is Card View &amp;amp; Right one is ShadowConstraintLayout&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Left one is Card View &amp;amp; Right one is ShadowConstraintLayout&lt;/p&gt;
+
+&lt;p&gt;You can play with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;blurRadius&lt;/code&gt; property and also set shadow &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;top&lt;/code&gt;,&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bottom&lt;/code&gt;,&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;start&lt;/code&gt;,&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;end&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;offset&lt;/code&gt; to suit your needs.&lt;/p&gt;</content><author><name></name></author><category term="Android" /><summary type="html">ConstraintLayout with its own shadow and we will apply round corners around it just like CardView</summary></entry><entry><title type="html">Dart: Create callback via typedef</title><link href="/dart/2019/05/26/creat-callback-via-typedef.html" rel="alternate" type="text/html" title="Dart: Create callback via typedef" /><published>2019-05-26T01:13:01+05:30</published><updated>2019-05-26T01:13:01+05:30</updated><id>/dart/2019/05/26/creat-callback-via-typedef</id><content type="html" xml:base="/dart/2019/05/26/creat-callback-via-typedef.html">&lt;p&gt;Let’s say we have a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Button&lt;/code&gt; class and it has a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;count&lt;/code&gt; property(member-variable), and a method &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tap()&lt;/code&gt;. Whenever we call the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tap()&lt;/code&gt; function, we &lt;strong&gt;increment&lt;/strong&gt; the count and &lt;strong&gt;&lt;em&gt;send a callback back to caller function.&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;typical-callback-code-from-java&quot;&gt;Typical callback code From Java&lt;/h2&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public class Button {
+ 
+ int _count = 0;
+ ButtonCallback callback;
+ void tap(){
+     ++_count;
+     if(callback!=null &amp;amp;&amp;amp; (_count%2) == 0){
+         callback.onTrigger(_count);
+      }
+  }
+ void setCallback(ButtonCallback callback){
+     this.callback = callback;
+ }
+ public interface ButtonCallback {
+    void onTrigger(int a);
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Unfortunately &lt;strong&gt;Dart&lt;/strong&gt; doesn’t have &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;interface&lt;/code&gt;&lt;/strong&gt; like &lt;strong&gt;Java&lt;/strong&gt;. But it supports functional programming: So &lt;strong&gt;we can just pass &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;function&lt;/code&gt; as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;arguments&lt;/code&gt;. &lt;em&gt;This is what we need to do for creating callbacks&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;here-is-the-dart-code&quot;&gt;Here is the Dart Code&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public class Button {
+  int _count = 0;
+  Function(int) callback;
+  
+  void tap(){
+     ++_count;
+     if(callback!=null &amp;amp;&amp;amp; (_count%2) == 0){
+         callback(_count));
+      }
+    }
+  void setCallback(Function(int) f){
+    this.callback = f;
+  }
+}
+
+//Main starts
+main (List&amp;lt;String&amp;gt; args){ 
+  Button button = new Button();
+  button.setCallback((a){
+    print(a);
+});
+for(int i=0;i&amp;lt;4;++i){
+  button.tap();
+ }
+}
+//Main Ends
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*tBxZBTka2VuLeRQ4OfrA6w.png&quot; /&gt;
+  &lt;br /&gt;
+  Output in console
+&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Code&lt;/strong&gt;: &lt;a href=&quot;https://gist.github.com/rahul-lohra/6f3561221564a346d060d58aabe8b659&quot;&gt;https://gist.github.com/rahul-lohra/6f3561221564a346d060d58aabe8b659&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;a-typedef-function-looks-like-this&quot;&gt;A typedef function looks like this&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  Function(int) callback
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Official definition of typedef: &lt;a href=&quot;https://dart.dev/guides/language/language-tour#typedefs&quot;&gt;https://dart.dev/guides/language/language-tour#typedefs&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;It says they are like objects and you can assign it to a variable or pass it as function arguments.&lt;/p&gt;
+
+&lt;p&gt;That’s it&lt;/p&gt;</content><author><name></name></author><category term="Dart" /><summary type="html">Let’s say we have a Button class and it has a count property(member-variable), and a method tap(). Whenever we call the tap() function, we increment the count and send a callback back to caller function.</summary></entry><entry><title type="html">Flutter: Create Circular Reveal Animation</title><link href="/animation/2019/05/19/circular-reveal.html" rel="alternate" type="text/html" title="Flutter: Create Circular Reveal Animation" /><published>2019-05-19T01:13:01+05:30</published><updated>2019-05-19T01:13:01+05:30</updated><id>/animation/2019/05/19/circular-reveal</id><content type="html" xml:base="/animation/2019/05/19/circular-reveal.html">&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2400/1*3hH6MTj1WF2O8IekzHNUdQ.gif&quot; alt=&quot;Demo Application&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Breaking the animation:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;The radius of the circle is increasing : &lt;strong&gt;&lt;em&gt;AnimationController&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;Drawing of the circle : &lt;strong&gt;&lt;em&gt;CustomPainter&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;There is also a fade out animation : &lt;strong&gt;&lt;em&gt;AnimationController&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Tap Behaviour (For simplicity: I will consider very minimal case)&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Tap down: Radius starts to increase&lt;/li&gt;
+  &lt;li&gt;Tap Up/Tap Cancel : Alpha is going from 40 to 0. (default alpha is 40 and alpha is of the reveal background)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;classes--their-responsibilities&quot;&gt;Classes &amp;amp; their responsibilities:&lt;/h2&gt;
+
+&lt;h3 id=&quot;revealpaint&quot;&gt;RevealPaint:&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;Draw circle on our widget&lt;/li&gt;
+  &lt;li&gt;Draw background with &lt;strong&gt;ARGB&lt;/strong&gt; colour.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;revealanimationcontroller&quot;&gt;RevealAnimationController:&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;Manage expand animation and fadeOut animation&lt;/li&gt;
+  &lt;li&gt;Send callback to &lt;strong&gt;&lt;em&gt;State (required to frequently draw on UI)&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;state-class&quot;&gt;State class:&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;It will have reference of the Paint class, and it will give the &lt;strong&gt;arguments&lt;/strong&gt; such as &lt;strong&gt;alpha&lt;/strong&gt; value and &lt;strong&gt;radius&lt;/strong&gt; to the paint class, and Paint class will just draw stuff.&lt;/li&gt;
+  &lt;li&gt;It will obviously manage &lt;strong&gt;tapUp and tapDown behaviou&lt;/strong&gt;r- which will tell when to start &lt;strong&gt;expand animation&lt;/strong&gt; and when to start &lt;strong&gt;fade out animation&lt;/strong&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;NOTE: The code is bit &lt;strong&gt;huge&lt;/strong&gt;, I will only explain the very basic and core-concepts:
+Full source code: &lt;a href=&quot;https://github.com/rahul-lohra/circular_reveal_widget&quot;&gt;https://github.com/rahul-lohra/circular_reveal_widget&lt;/a&gt;&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code:&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class RevealPaint extends CustomPainter {
+  double fraction = 0.0;
+    double radius = 0;
+    Paint mPaint;
+    Offset offset;
+    int alpha = RevealAnimationController.MAX_ALPHA;
+    String revealColor = &quot;F2F3F4&quot;;
+
+    RevealPaint() {
+      mPaint = Paint();
+      mPaint.color = HexColor(&quot;#$alpha$revealColor&quot;);
+      mPaint.style = PaintingStyle.fill;
+      offset = Offset(0, 0);
+    }
+
+    setAlpha(int alpha){
+      this.alpha = alpha;
+      mPaint.color = HexColor(&quot;#${alpha}$revealColor&quot;);
+    }
+
+    @override
+    void paint(Canvas canvas, Size size) {
+      double finalRadius = (radius * fraction);
+      canvas.drawCircle(offset, finalRadius, mPaint);
+    }
+
+    @override
+    bool shouldRepaint(RevealPaint oldDelegate) {
+      return true;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Drawing is happening on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;paint()&lt;/code&gt; function. &lt;strong&gt;Radius&lt;/strong&gt; and &lt;strong&gt;fraction&lt;/strong&gt; values will be initialised dynamically — we will see later.&lt;/p&gt;
+
+&lt;p&gt;We need code to &lt;strong&gt;&lt;em&gt;start and stop&lt;/em&gt;&lt;/strong&gt; the &lt;strong&gt;expand and fade&lt;/strong&gt; animation. So we have &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RevealAnimationController&lt;/code&gt; here, it manages them&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class RevealAnimationController{
+  Animation&amp;lt;double&amp;gt; tweenExpand;  //contain animated value
+  Animation&amp;lt;double&amp;gt; tweenFade;    //contain animated value
+  VoidCallback tweenFadeCallback; //they are listeners to the animation
+  VoidCallback tweenExpandCallback;
+  AnimationController expandAnimationController;    
+  AnimationController fadeAnimController;
+  RevealAnimationController(
+      TickerProviderStateMixin mixin, ControllerCallback callback) {
+  expandAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800), vsync: mixin);
+  fadeAnimController = AnimationController(
+      duration: const Duration(milliseconds: 300), vsync: mixin);
+
+  tweenFade =
+      Tween&amp;lt;double&amp;gt;(begin: MAX_ALPHA.toDouble(), end: MIN_ALPHA.toDouble())
+          .animate(fadeAnimController);
+
+  tweenExpand = Tween&amp;lt;double&amp;gt;(begin: MIN_TWEEN_VALUE, end: MAX_TWEEN_VALUE)
+      .animate(animaController);
+  }
+  startAnimation() {
+      expandAnimationController.forward();
+  }
+  startFadeOutAnim() {
+      fadeAnimController.forward();
+  }
+  resetExpandAnim() {    
+      expandAnimationController.reset();
+  }
+  _prepareTweenCallback() {
+    tweenFadeCallback = () {
+        int val = tweenFade.value.toInt();
+        callback.onAlphaUpdate(val);    
+    };
+
+    tweenExpandCallback = () {
+      fraction = tweenExpand.value;
+        if (tweenExpand.value == MAX_TWEEN_VALUE) {
+          callback.onAnimationComplete(fraction);
+        } else {
+          callback.onAnimationUpdate(fraction, alpha);
+        }
+    };
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Now we need a way to tell out &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Paint&lt;/code&gt; class to draw circle with some &lt;strong&gt;colours and alpha&lt;/strong&gt; value&lt;/p&gt;
+
+&lt;p&gt;Now we have a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ControllerCallback&lt;/code&gt;(custom made) &lt;strong&gt;interface, it will basically give updates to our State class. And this State class will&lt;/strong&gt; force the Paint class to re-draw stuffs on our widget.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class RevealState extends State
+    with TickerProviderStateMixin, ControllerCallback {
+  Widget child;
+  RevealAnimationController controller;
+  RevealPaint revealPaint;
+  RevealState(Widget child) {
+    this.child = child;
+    controller = RevealAnimationController(this, this);
+  }
+  @override
+  Widget build(BuildContext context) {
+    List&amp;lt;Widget&amp;gt; widgetList = List();
+    widgetList.add(child);
+
+    if (enableReveal) {
+      revealPaint = RevealPaint();
+      revealPaint.radius = max(renderBoxSize.height, renderBoxSize.width) + 10;
+      revealPaint.fraction = controller.fraction;
+      revealPaint.setAlpha(controller.alpha);
+      revealPaint.offset = offset;
+
+      widgetList.add(revealWidget(renderBoxSize, revealPaint));
+    }
+
+    return getTapWidget(widgetList);
+  }
+  Widget revealWidget(Size _size, CustomPainter paint) {
+    return ClipRRect(
+      borderRadius: BorderRadius.zero,
+      child: CustomPaint(
+        size: _size,
+        painter: paint,
+      ),
+    );
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Inside the build functions we are &lt;strong&gt;setting arguments our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Paint&lt;/code&gt; class&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;In the above class we have some callbacks&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  @override
+  void onAnimationUpdate(double fraction, int alpha) {
+    setState(() {
+      controller.fraction = fraction;
+    });
+  }
+
+  @override
+  void onAnimationComplete(double fraction) {
+    setState(() {
+      controller.fraction = fraction;
+    });
+  }
+
+  @override
+  void onAlphaUpdate(int alpha) {
+    setState(() {
+      controller.alpha = alpha;
+    });
+  }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We are calling &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;setState&lt;/code&gt; — It will force to re-render the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;widget&lt;/code&gt;, means the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;build&lt;/code&gt; function will be called again and again.&lt;/p&gt;
+
+&lt;p&gt;Now how to &lt;strong&gt;start or stop&lt;/strong&gt; expand and fade &lt;strong&gt;animations&lt;/strong&gt;, — We will &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GestureDetector&lt;/code&gt; for this&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Widget getTapWidget(List&amp;lt;Widget&amp;gt; widgetList) {
+  return GestureDetector(
+    child: Stack(children: widgetList),
+    onLongPressMoveUpdate: (e) {
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onHorizontalDragUpdate: (e){
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onVerticalDragUpdate: (e){
+      handleFingerMove(e.globalPosition.distance);
+    },
+    onTapUp: (e){
+      handleTapUp();
+    },
+    onLongPressUp: (){
+      handleTapUp();
+    },
+    onTapDown: (e) {
+      handleTapDown(e);
+    },
+  );
+}
+void handleFingerMove(double pos) {
+  //Codes are removed for simplicity
+    handleTapUp();
+}
+
+void handleTapDown(TapDownDetails e) {
+  setState(() {
+  //Codes are removed for simplicity
+    startAnimation();
+  });
+}
+void handleTapUp() {
+  controller.stopAnimation();
+}
+
+void startAnimation() {
+  controller.startAnimation();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That’s it. check the readme of the library. Its very simple&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Finally, this is our library’s widget&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class RevealWidget extends StatefulWidget{
+  Widget child;
+  RevealWidget(this.child);
+  @override
+  State&amp;lt;StatefulWidget&amp;gt; createState() {
+    return RevealState(child);
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;thats-how-we-use-it&quot;&gt;&lt;strong&gt;That’s how we use it.&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class ButtonWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return RevealWidget(Container(
+        color: Colors.red,
+        width: 100,
+        height: 60,
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            &quot;Hello&quot;,
+            style: TextStyle(fontSize: 20),
+          ),
+        )));
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Full source code: &lt;a href=&quot;https://github.com/rahul-lohra/circular_reveal_widget&quot;&gt;https://github.com/rahul-lohra/circular_reveal_widget&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;Package: &lt;a href=&quot;https://pub.dev/packages/circular_reveal&quot;&gt;https://pub.dev/packages/circular_reveal&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;</content><author><name></name></author><category term="Animation" /><summary type="html"></summary></entry><entry><title type="html">Bluetooth Low energy Chat Application Series #3</title><link href="/ble/chat/application/2018/12/27/ble-part-3.html" rel="alternate" type="text/html" title="Bluetooth Low energy Chat Application Series #3" /><published>2018-12-27T01:15:01+05:30</published><updated>2018-12-27T01:15:01+05:30</updated><id>/ble/chat/application/2018/12/27/ble-part-3</id><content type="html" xml:base="/ble/chat/application/2018/12/27/ble-part-3.html">&lt;h1 id=&quot;bluetooth-low-energy-chat-application-series&quot;&gt;Bluetooth Low energy Chat Application Series&lt;/h1&gt;
+
+&lt;h3 id=&quot;overview-of-chat-application&quot;&gt;Overview of Chat application:&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;How Bluetooth Low energy device works &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-1.html&quot;&gt;#Post 1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Server &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-2.html&quot;&gt;#Post 2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Client&lt;/li&gt;
+  &lt;li&gt;Sending Data over Bluetooth Low energy network&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;post-3---setting-up-gatt-client&quot;&gt;Post 3 - Setting up Gatt Client&lt;/h4&gt;
+
+&lt;p&gt;Things todo:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Declare global variables&lt;/li&gt;
+  &lt;li&gt;Get Bluetooth Manage&lt;/li&gt;
+  &lt;li&gt;Start scanning nearby devices&lt;/li&gt;
+  &lt;li&gt;Get ScanCallback&lt;/li&gt;
+  &lt;li&gt;Connect with scanned devices&lt;/li&gt;
+  &lt;li&gt;Setup Gatt ClientCallback&lt;/li&gt;
+  &lt;li&gt;Manage onConnectionStateChange&lt;/li&gt;
+  &lt;li&gt;Discover Services of Server(a.k.a Bluetooth Gatt server)&lt;/li&gt;
+  &lt;li&gt;Write your very first Descriptor&lt;/li&gt;
+  &lt;li&gt;Handle BluetoothGattCallback.onDescriptorWrite(…)&lt;/li&gt;
+  &lt;li&gt;Write your very first message from Gatt Client&lt;/li&gt;
+  &lt;li&gt;Initialise mConnectedDevices: Inside Gatt server setup&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;0-declare-global-variables&quot;&gt;0. Declare global variables&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;var mGattConnectedMap = HashMap&amp;lt;BluetoothGatt, Boolean&amp;gt;()
+val mDeviceGattMap = HashMap&amp;lt;BluetoothDevice, BluetoothGatt&amp;gt;()
+val mGattDeviceMap = HashMap&amp;lt;BluetoothGatt, BluetoothDevice&amp;gt;()
+var mScanning = false
+val mScannedDeviceIds = HashSet&amp;lt;String&amp;gt;()
+val mConnectedDevices: ArrayList&amp;lt;BluetoothDevice&amp;gt; = ArrayList()
+val mGattClientCallbackMap = HashMap&amp;lt;BluetoothDevice, GattClientCallback&amp;gt;()
+var mClientScanCallback: ScanCallback? = null
+var mBluetoothLeScanner: BluetoothLeScanner? = null
+val mScannedDevices = HashSet&amp;lt;BluetoothDevice&amp;gt;()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&quot;1-get-bluetooth-manager&quot;&gt;1. Get Bluetooth Manager&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;2-start-scanning-nearby-devices&quot;&gt;2. Start scanning nearby devices&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun startScanning(){
+if (mScanning) {
+    return
+}
+
+val filters = ArrayList&amp;lt;ScanFilter&amp;gt;()
+val settings = ScanSettings.Builder()
+        .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+        .build()
+filters.add(ScanFilter.Builder()
+        .setServiceUuid(ParcelUuid(SERVICE_UUID))
+        .build())
+
+mClientScanCallback = BluetoothScanCallback() // Will setup this in 3rd step
+mBluetoothLeScanner = mBluetoothAdapter.bluetoothLeScanner
+
+if (mBluetoothLeScanner == null) {
+      sendLog(&quot;mBluetoothLeScanner is NULL&quot;)
+} else {
+    mBluetoothLeScanner?.startScan(filters, settings, mScanCallback)
+}
+
+
+mScanning = true
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;## 3. Get ScanCallback&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; private inner class BluetoothScanCallback : ScanCallback() {
+    override fun onScanResult(callbackType: Int, result: ScanResult)  
+     {
+        addScannedDevice(result)
+     }
+
+    override fun onBatchScanResults(results: List&amp;lt;ScanResult&amp;gt;) {
+        for (result in results) {
+            addScannedDevice(result)
+        }
+    }
+
+    override fun onScanFailed(errorCode: Int) {
+        Log.d(&quot;Scanning Failed with error code: $errorCode&quot;)
+    }
+
+
+    private fun addScannedDevice(result: ScanResult) {
+        val device = result.device
+        if (device != null &amp;amp;&amp;amp; device.address != null) {
+            mScannedDeviceIds.add(device.address)
+        }
+
+        if (!mScannedDevices.contains(device)) {
+            mScannedDevices.add(device)
+            Handler().postDelayed({ connectWithScannedDevice(device) }, 1000)
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;4-connect-with-scanned-devices&quot;&gt;4. Connect with scanned devices&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun connectWithScannedDevice(device: BluetoothDevice) {
+    Log.d(&quot;connectDevice&quot;)
+    var mGattClientCallback = mGattClientCallbackMap[device]
+    if (mGattClientCallback == null) {
+        mGattClientCallback = GattClientCallback()
+        mGattClientCallbackMap[device] = mGattClientCallback
+    }
+    val mGatt = device.connectGatt(context, false, mGattClientCallbackMap[device])
+    mDeviceGattMap[device] = mGatt
+    mGattDeviceMap[mGatt] = device
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;5-setup-gatt-client-callback&quot;&gt;5. Setup Gatt client callback&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;inner class GattClientCallback : BluetoothGattCallback() {
+
+    //SENDER
+    override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+        super.onCharacteristicWrite(gatt, characteristic, status)
+        handleOnCharacteristicWriteOfSender(gatt, characteristic, status)
+    }
+
+    
+    override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+        super.onDescriptorWrite(gatt, descriptor, status)
+        handleDescriptorWriteOfSender(gatt, descriptor, status)
+    }
+
+   
+    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+        super.onConnectionStateChange(gatt, status, newState)
+        handleOnConnectionStateChange(gatt, status, newState)
+    }
+
+   
+    override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+        super.onServicesDiscovered(gatt, status)
+        handleOnServicesDiscovered(gatt, status)
+    }
+
+   
+    override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
+        super.onCharacteristicChanged(gatt, characteristic)
+        handleOnCharacteristicChanged(gatt, characteristic)
+
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;6-manage-onconnectionstatechange&quot;&gt;6. Manage onConnectionStateChange&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun handleOnConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int){
+if (status == BluetoothGatt.GATT_FAILURE) {
+       disconnectFromGattServer(gatt)
+       return
+   } else if (status != BluetoothGatt.GATT_SUCCESS) {
+       disconnectFromGattServer(gatt, true)
+       return
+   }
+   if (newState == BluetoothProfile.STATE_CONNECTED) {
+       handleConnectedStateOfClient(gatt)
+   } 
+      else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+       disconnectFromGattServer(gatt, true)
+   }
+}
+fun handleConnectedStateOfClient(bluetoothGatt: BluetoothGatt){
+   mGattConnectedMap[bluetoothGatt] = true
+   mDeviceGattMap[bluetoothGatt.device] = bluetoothGatt
+   mGattDeviceMap[bluetoothGatt] = bluetoothGatt.device
+   bluetoothGatt.discoverServices()
+}
+fun disconnectFromGattServer(gatt: BluetoothGatt, retry: Boolean = false){
+   mGattConnectedMap[gatt] = false
+   if (retry) {
+       gatt.connect()
+   } else {
+       gatt.disconnect()
+       gatt.close()
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;bluetoothGatt.discoverServices will call &lt;strong&gt;&lt;em&gt;BluetoothGattCallback.onServicesDiscovered(…)&lt;/em&gt;&lt;/strong&gt; . We have to handle this now&lt;/p&gt;
+  &lt;h2 id=&quot;7-discover-services-of-serveraka-bluetooth-gatt-server&quot;&gt;7. Discover Services of Server(a.k.a Bluetooth Gatt server)&lt;/h2&gt;
+  &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun handleOnServicesDiscovered(gatt: BluetoothGatt?, status: Int){
+   if (status != BluetoothGatt.GATT_SUCCESS) {
+       return
+   }
+   if (gatt != null) {
+      writeFirstDescriptor(gatt)
+   }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
+  &lt;h2 id=&quot;8-write-your-very-first-descriptor&quot;&gt;8. Write your very first Descriptor&lt;/h2&gt;
+  &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun writeFirstDescriptor(gatt: BluetoothGatt){
+   val service = gatt.getService(SERVICE_UUID)
+   var metaDataCharacteristic = 
+       service.getCharacteristic(USER_META_DATA_UUID)
+   if (metaDataCharacteristic != null) {
+       metaDataCharacteristic.writeType =     
+       BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+var descriptor =  
+   metaDataCharacteristic.getDescriptor(USER_META_DATA_DESCRIPTOR_UUID)
+   descriptor?.value = 
+   BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+  if (descriptor != null) {
+      val descriptorWriteStartedSuccess = 
+            gatt.writeDescriptor(descriptor)
+        //check whether write is success or not
+    } else {
+        Log.d(&quot;DESCRIPTOR is null&quot;)
+   }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
+  &lt;p&gt;The important thing about writing first descriptor is basically that, the client will now receive a callback on &lt;strong&gt;&lt;em&gt;BluetoothGattCallback.onDescriptorWrite(…)&lt;/em&gt;&lt;/strong&gt;
+If we get a successful then it means two devices can now talk&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;9-handle-bluetoothgattcallbackondescriptorwrite&quot;&gt;9. Handle BluetoothGattCallback.onDescriptorWrite(…)&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun handleDescriptorWriteOfSender (gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int){
+    if (status == BluetoothGatt.GATT_SUCCESS) {
+       sendYourVeryFirstMessage(gatt)
+   } else {
+       if (gatt != null &amp;amp;&amp;amp; mGattDeviceMap[gatt] != null) {         
+     handleFailureOfDescriptionWrite(mGattDeviceMap[gatt]!!.address)
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;If you want to send messages in queue fashion use a proper data structure for that. You also have to customise sendYourVeryFirstMessage(gatt). Remember the &lt;strong&gt;&lt;em&gt;MTU(Maximum transfer unit)&lt;/em&gt;&lt;/strong&gt; size for BLE will range from &lt;strong&gt;23&lt;/strong&gt; bytes till &lt;strong&gt;512&lt;/strong&gt; bytes&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;And you can definitely request to increase but I won’t recommend that because it will vary from device to device and OS to OS&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;10-write-your-very-first-message-from-gatt-client&quot;&gt;10. Write your very first message from Gatt Client&lt;/h2&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fun sendYourVeryFirstMessage(gatt: BluetoothGatt?, characteristicUuid: UUID = USER_META_DATA_UUID, bytes: ByteArray? = null){
+try {
+    if (gatt != null) {
+        val mGattConnected = mGattConnectedMap[gatt]
+        if ((mGattConnected == null || !mGattConnected) &amp;amp;&amp;amp; !mConnectedDevices.contains(gatt.device)) {
+            handleFailureOfSendingMessage()
+            return
+        }
+        val service = gatt.getService(SERVICE_UUID)
+        if (service != null) {
+            val characteristic = service.getCharacteristic(characteristicUuid)
+            characteristic?.value = bytes
+            characteristic?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            val success = gatt.writeCharacteristic(characteristic)
+            //check for success writing
+            //You will get the message on    
+            //GattServerCallback.onCharacteristicWriteRequest(..)
+        } else {
+            handleFailureOfSendingMessage()
+        }
+    } else {
+        handleFailureOfSendingMessage()
+    }
+} catch (E: NullPointerException) {
+    handleFailureOfSendingMessage()
+}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;&lt;em&gt;mConnectedDevices&lt;/em&gt;&lt;/strong&gt;: A new variable, it should be defined in Gatt Server setup. I will show you the code below. handleFailureOfSendingMessage(): This functions basically handles the failed messages. For now we will do nothing&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;11-initialise-mconnecteddevices-inside-gatt-server-setup&quot;&gt;11. Initialise mConnectedDevices: Inside Gatt server setup&lt;/h2&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;inner class GattServerCallback : BluetoothGattServerCallback() {
+...
+override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int){
+    super.onConnectionStateChange(device, status, newState);
+    handleOnConnectionStateChangeServer(device, status, newState)
+}
+...
+}//end of inner class GattServerCallback
+fun handleOnConnectionStateChangeServer(bleDevice: BluetoothDevice?, status: Int, newState: Int){
+if (bleDevice != null) {
+    if (newState == BluetoothProfile.STATE_CONNECTED) {
+          mConnectedDevices.add(bleDevice)
+          connectNewDevice(bleDevice)
+      } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+          mConnectedDevices.remove(bleDevice)
+      }
+   }
+  }
+
+fun connectNewDevice(device:BluetoothDevice){
+  var mGattClientCallback = mGattClientCallbackMap[device]
+  if (mGattClientCallback == null) {
+  // Means a new device, so add it
+      mGattClientCallback = GattClientCallback()
+      mGattClientCallbackMap[device] = mGattClientCallback
+      val mGatt = device.connectGatt(context, false,  
+                  mGattClientCallbackMap[device])
+      mDeviceGattMap[device] = mGatt
+      mGattDeviceMap[mGatt] = device
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;important-notes&quot;&gt;Important Notes:&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;Our device is acting as both client and server, that’s why we have to save device’s reference from &lt;strong&gt;&lt;em&gt;handleOnConnectionStateChangeServer(..)&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;At last, setting up Gatt client is completed 😌&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Code: https://github.com/iamdangerous/Ble-Chat-Android-app/blob/post_3_setup_gatt_client/app/src/main/java/com/rahullohra/blechatapp/BluetoothController.kt&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;https://www.bignerdranch.com/blog/bluetooth-low-energy-part-1/&lt;/li&gt;
+  &lt;li&gt;https://www.bignerdranch.com/blog/bluetooth-low-energy-part-2/&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><category term="BLE" /><category term="Chat" /><category term="Application" /><summary type="html">Bluetooth Low energy Chat Application Series</summary></entry><entry><title type="html">Bluetooth Low energy Chat Application Series #2</title><link href="/ble/chat/application/2018/12/27/ble-part-2.html" rel="alternate" type="text/html" title="Bluetooth Low energy Chat Application Series #2" /><published>2018-12-27T01:14:01+05:30</published><updated>2018-12-27T01:14:01+05:30</updated><id>/ble/chat/application/2018/12/27/ble-part-2</id><content type="html" xml:base="/ble/chat/application/2018/12/27/ble-part-2.html">&lt;h1 id=&quot;bluetooth-low-energy-chat-application-series&quot;&gt;Bluetooth Low energy Chat Application Series&lt;/h1&gt;
+
+&lt;h3 id=&quot;overview-of-chat-application&quot;&gt;Overview of Chat application:&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;How Bluetooth Low energy device works &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-1.html&quot;&gt;#Post 1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Server&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Client &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-3.html&quot;&gt;#Post 3&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Sending Data over Bluetooth Low energy network&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;post-2---setting-up-gatt-server&quot;&gt;Post 2 - Setting up Gatt Server&lt;/h4&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Add permissions&lt;/li&gt;
+  &lt;li&gt;Setup UUIDs for your service, Characteristics and meta-data&lt;/li&gt;
+  &lt;li&gt;Setup Gatt Server&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;add-permissions&quot;&gt;Add permissions&lt;/h3&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;uses-permission android:name=&quot;android.permission.BLUETOOTH&quot;/&amp;gt;
+&amp;lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_ADMIN&quot;/&amp;gt;
+&amp;lt;uses-feature android:name=&quot;android.hardware.bluetooth_le&quot; android:required=&quot;true&quot;/&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;setup-uuids&quot;&gt;Setup UUIDs&lt;/h3&gt;
+&lt;p&gt;Use this url to generate UUID - (https://www.uuidgenerator.net/)&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val SERVICE_ID = &quot;364710c0-6359-4bdf-9946-9f54d07eb8d3&quot;
+val USER_META_DATA_ID = &quot;770bf5dc-53f8-4d55-8506-15a51baee22d&quot;
+val SERVICE_UUID = UUID.fromString(SERVICE_ID)
+val USER_META_DATA_UUID = UUID.fromString(USER_META_DATA_ID)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;setup-gatt-server&quot;&gt;Setup Gatt Server&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;Get BluetoothManager - &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Goto step 2 after some delay eg - 2 seconds&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Setup BluetoothLeAdvertiser&lt;/li&gt;
+  &lt;li&gt;Create GattServerCallback - &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;in this callback you will receive message&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Open GattServer&lt;/li&gt;
+  &lt;li&gt;Add your service to the GATT server&lt;/li&gt;
+  &lt;li&gt;Create AdvertiseCallback - &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;to know whether scan is started or not&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Start advertising your GATT server&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Note - All above points are necessary&lt;/p&gt;
+
+&lt;h4 id=&quot;1-get-bluetoothmanager&quot;&gt;1. Get BluetoothManager&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+# Goto to step 2 after some delay eg - 2 seconds
+# Eg - Use a handler 
+Handler.postDelayed({callStep2()}, 2000L)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;2-setup-bluetoothleadvertiser&quot;&gt;2. Setup BluetoothLeAdvertiser&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val mBluetoothLeAdvertiser = mBluetoothAdapter.bluetoothLeAdvertiser;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;3-create-gattservercallback&quot;&gt;3. Create GattServerCallback&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    inner class GattServerCallback : BluetoothGattServerCallback() {
+
+        override fun onDescriptorReadRequest(device: BluetoothDevice?, requestId: Int, offset: Int, descriptor: BluetoothGattDescriptor?) {
+
+        }
+
+        override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
+            super.onConnectionStateChange(device, status, newState);
+            
+        }
+
+        //RECEIVER END    
+        override fun onCharacteristicWriteRequest(device: BluetoothDevice?, requestId: Int, characteristic: BluetoothGattCharacteristic?, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?) {        
+
+        }
+
+        override fun onCharacteristicReadRequest(device: BluetoothDevice?, requestId: Int, offset: Int, characteristic: BluetoothGattCharacteristic?) {
+            super.onCharacteristicReadRequest(device, requestId, offset, characteristic)
+        }
+
+        override fun onDescriptorWriteRequest(device: BluetoothDevice?, requestId: Int, descriptor: BluetoothGattDescriptor?, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray?) {
+            super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value)
+
+        }
+    }
+    val gattServerCallback = GattServerCallback()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;4-open-gatt-server&quot;&gt;4. Open GATT Server&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;var mGattServer: BluetoothGattServer? = mBluetoothManager.openGattServer(context, gattServerCallback)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;5-add-service-to-the-gatt-server&quot;&gt;5. Add service to the GATT Server&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val service = BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+
+service.addCharacteristic(BleMessageUtil.prepareCharateristic(USER_META_DATA_UUID, USER_META_DATA_DESCRIPTOR_UUID))
+
+service.addCharacteristic(BleMessageUtil.prepareCharateristic(ONE_TO_ONE_MSG_UUID, ONE_TO_ONE_MSG_DESCRIPTOR_UUID))
+
+mGattServer?.addService(service)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;6-create-advertisecallback&quot;&gt;6. Create AdvertiseCallback&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;val mAdvertiseCallback = object : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+            sendLog(&quot;Peripheral advertising started.&quot;)
+        }
+
+        override fun onStartFailure(errorCode: Int) {
+            sendLog(&quot;Peripheral advertising failed: $errorCode&quot;)
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;7-start-advertising-your-gatt-server&quot;&gt;7. Start advertising your GATT server&lt;/h4&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;if (mBluetoothLeAdvertiser == null) {
+            return
+        }
+val settings = AdvertiseSettings.Builder()
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setConnectable(true)
+                .setTimeout(0)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
+                .build()
+
+val parcelUuid = ParcelUuid(SERVICE_UUID)
+val data = AdvertiseData.Builder()
+                .setIncludeDeviceName(false)// because data is greater than 31 bytes
+                .addServiceUuid(parcelUuid)
+                .build()
+
+mBluetoothLeAdvertiser?.startAdvertising(settings, data, mAdvertiseCallback);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Reference&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;https://developer.android.com/guide/topics/connectivity/bluetooth-le&lt;/li&gt;
+  &lt;li&gt;https://www.bignerdranch.com/blog/bluetooth-low-energy-part-1/&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><category term="BLE" /><category term="Chat" /><category term="Application" /><summary type="html">Bluetooth Low energy Chat Application Series</summary></entry><entry><title type="html">Bluetooth Low energy Chat Application Series #1</title><link href="/ble/chat/application/2018/12/27/ble-part-1.html" rel="alternate" type="text/html" title="Bluetooth Low energy Chat Application Series #1" /><published>2018-12-27T01:13:01+05:30</published><updated>2018-12-27T01:13:01+05:30</updated><id>/ble/chat/application/2018/12/27/ble-part-1</id><content type="html" xml:base="/ble/chat/application/2018/12/27/ble-part-1.html">&lt;h1 id=&quot;bluetooth-low-energy-chat-application-series&quot;&gt;Bluetooth Low energy Chat Application Series&lt;/h1&gt;
+
+&lt;h3 id=&quot;overview-of-chat-application--&quot;&gt;Overview of Chat application -&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;How Bluetooth Low energy device works&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Server &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-2.html&quot;&gt;#Post 2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Setting up Gatt Client &lt;a href=&quot;/ble/chat/application/2018/12/27/ble-part-3.html&quot;&gt;#Post 3&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Sending Data over Bluetooth Low energy network&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;post-1---how-bluetooth-low-energy-device-works-in-general&quot;&gt;Post 1 - How Bluetooth Low energy device works in general&lt;/h4&gt;
+
+&lt;p&gt;Key components&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Ble&lt;/strong&gt; - Bluetooth Low energy device&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GATT&lt;/strong&gt; - Defines protocol(set of rules) on how data should be exchanged&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GATT Server&lt;/strong&gt; - Provides functionality to create &lt;strong&gt;Services&lt;/strong&gt; and broadcast itself so other &lt;strong&gt;Gatt Client&lt;/strong&gt; can connect to it. (can be slightly confusing, I know but don’t worry, this will be cleared later). Treat it as a web server.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Gatt Client&lt;/strong&gt; - It is responsible for scanning nearby &lt;strong&gt;GATT Server&lt;/strong&gt;, connecting to it and exchanging data(in terms of &lt;strong&gt;Characteristics&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Service&lt;/strong&gt; - A service is a collection of characteristics. For example, you could have a service called “Heart Rate Monitor” that includes characteristics such as “heart rate measurement.”&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Characteristics&lt;/strong&gt; - It contains a value and a list of &lt;strong&gt;descriptors&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Descriptors&lt;/strong&gt; - It contains a value and generally it is used as attributes of a &lt;strong&gt;Characteristics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UUID&lt;/strong&gt; - Just a unique identifier, on how to uniquely identify/create a Service or a characteristics or a descriptor.&lt;/p&gt;
+
+&lt;p&gt;For exchanging data over http network, we need two devices one will act as a server and another will act as client. Eg - that’s how website work&lt;/p&gt;
+
+&lt;p&gt;This same thing applies in Ble network, we need two devices one will act as a &lt;strong&gt;Gatt server&lt;/strong&gt; and another will act as &lt;strong&gt;Gatt client&lt;/strong&gt; for exchanging of data.&lt;/p&gt;
+
+&lt;p&gt;And a device can be both Gatt Server and Gatt client.&lt;/p&gt;
+
+&lt;p&gt;There are still some concepts left, I will teach them when they are used.&lt;/p&gt;
+
+&lt;p&gt;For Android chat application, we will have two devices and they both will act as a Gatt Server and Gatt Client.&lt;/p&gt;
+
+&lt;p&gt;Reference - https://developer.android.com/guide/topics/connectivity/bluetooth-le&lt;/p&gt;</content><author><name></name></author><category term="BLE" /><category term="Chat" /><category term="Application" /><summary type="html">Bluetooth Low energy Chat Application Series</summary></entry></feed>
