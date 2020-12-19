@@ -17,6 +17,7 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
+# theme docs: https://github.com/jekyll/minima/tree/v2.5.1
 
 title: Rahul Kumar Lohra
 email: tgunix@gmail.com
@@ -25,6 +26,7 @@ description: >- # this means to ignore newlines until "baseurl:"
 url: "http://rahullohra.com" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: rahul_lohra
 github_username:  rahul-lohra
+linkedin_username: rahullohra
 
 # Build settings
 theme: minima
