@@ -3,16 +3,12 @@ layout: page
 title: About
 permalink: /about/
 ---
+Hi I am Rahul Kumar Lohra, currently working for Tokopedia **(Indonesian technology company specializing in e-commerce)** as Senior Software Engineer
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
+Currently I am based in Noida, Uttar Pradesh, India
 
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
+Area of expertise: Android,Kotlin,Java,Flutter,Dart
 
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
-
-
-[jekyll-organization]: https://github.com/jekyll
+Check these links to know more about my work
+1. [https://www.linkedin.com/in/rahullohra/](https://www.linkedin.com/in/rahullohra/)
+2. [https://www.github.com/rahul-lohra/](https://www.github.com/rahul-lohra/)
