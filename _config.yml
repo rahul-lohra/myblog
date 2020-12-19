@@ -23,7 +23,7 @@ title: Rahul Kumar Lohra
 email: tgunix@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Android|Kotlin|Java|Flutter|Dart|Software Development
-url: "https://rahullohra.com" # the base hostname & protocol for your site, e.g. http://example.com
+url: "http://rahullohra.com" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: rahul_lohra
 github_username:  rahul-lohra
 linkedin_username: rahullohra
