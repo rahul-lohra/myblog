@@ -36,7 +36,7 @@ plugins:
 disqus:
     shortname: rahullohra
 
-google_analytics: G-2HGX4B6R4K
+google_analytics: UA-186127973-1
 
 # Exclude from processing.
 # The following items will not be processed, by default.
