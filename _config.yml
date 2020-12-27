@@ -32,11 +32,12 @@ linkedin_username: rahullohra
 theme: minima
 plugins:
   - jekyll-feed
+  - jekyll-analytics
 
 disqus:
     shortname: rahullohra
 
-google_analytics: G-Z2QVT3QYHH
+google_analytics: UA-186127973-1
 
 # Exclude from processing.
 # The following items will not be processed, by default.
