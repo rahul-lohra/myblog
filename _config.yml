@@ -37,7 +37,11 @@ plugins:
 disqus:
     shortname: rahullohra
 
-google_analytics: UA-186127973-1
+jekyll_analytics:
+  GoogleAnalytics:          # Add, if you want to track with Google Analytics
+    id: UA-186127973-1          # Required - replace with your tracking id
+    anonymizeIp: false      # Optional - Default: false - set to true for anonymized tracking
+
 
 # Exclude from processing.
 # The following items will not be processed, by default.
