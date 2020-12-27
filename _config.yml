@@ -30,6 +30,7 @@ linkedin_username: rahullohra
 
 # Build settings
 theme: minima
+whitelist: [jekyll-analytics]
 plugins:
   - jekyll-feed
   - jekyll-analytics
